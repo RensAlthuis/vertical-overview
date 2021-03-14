@@ -28,7 +28,7 @@ var WorkspacesViewBase = GObject.registerClass({
     _init(monitorIndex, overviewAdjustment) {
         super._init({
             style_class: 'workspaces-view',
-            clip_to_allocation: monitorIndex !== Main.layoutManager.primaryIndex,
+            clip_to_allocation: true,
             x_expand: true,
             y_expand: true,
         });
