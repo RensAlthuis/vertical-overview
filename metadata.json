@@ -1,0 +1,10 @@
+{
+    "name" : "better overview",
+    "description" : "Bringing back vertically stacked workspaces",
+    "shell-version" : [
+        "40.beta"
+    ],
+    "url" : "",
+    "uuid" : "better-overview@rens.althuis@gmail.com",
+    "version" : 40
+}
