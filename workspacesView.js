@@ -1,7 +1,7 @@
 // -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
 /* exported WorkspacesView, WorkspacesDisplay */
 
-const { Clutter, Gio, GObject, Meta, Shell, St } = imports.gi;
+const { Clutter, Gio, GObject, Graphene, Meta, Shell, St } = imports.gi;
 
 const Layout = imports.ui.layout;
 const Main = imports.ui.main;
@@ -9,7 +9,9 @@ const OverviewControls = imports.ui.overviewControls;
 const SwipeTracker = imports.ui.swipeTracker;
 const Util = imports.misc.util;
 const Workspace = imports.ui.workspace;
-const { ThumbnailsBox, MAX_THUMBNAIL_SCALE } = imports.ui.workspaceThumbnail;
+
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const { ThumbnailsBox, MAX_THUMBNAIL_SCALE } = Self.imports.workspaceThumbnail;
 
 var WORKSPACE_SWITCH_TIME = 250;
 
@@ -30,7 +32,7 @@ var WorkspacesViewBase = GObject.registerClass({
             style_class: 'workspaces-view',
             clip_to_allocation: true,
             x_expand: true,
-            y_expand: true,
+            y_expand: true
         });
         this.connect('destroy', this._onDestroy.bind(this));
         global.focus_manager.add_group(this);
@@ -247,13 +249,14 @@ class WorkspacesView extends WorkspacesViewBase {
         case ControlsState.WINDOW_PICKER:
             return 1;
         case ControlsState.APP_GRID:
-            return 0;
+            return 1;
         }
 
         return 0;
     }
 
     _updateWorkspacesState() {
+        const { ControlsState } = OverviewControls;
         const adj = this._scrollAdjustment;
         const fitMode = this._fitModeAdjustment.value;
 
@@ -267,14 +270,22 @@ class WorkspacesView extends WorkspacesViewBase {
 
         // Fade and scale inactive workspaces
         this._workspaces.forEach((w, index) => {
-            w.stateAdjustment.value = workspaceMode;
+            if(finalState === ControlsState.APP_GRID) {
+                w.opacity = Util.lerp(0, 255, 1-progress);
+                var scale = Util.lerp(0.5, 1, 1-progress);
+                w.set_scale(scale, scale);
+            } else if(initialState === ControlsState.APP_GRID) {
+                w.opacity = Util.lerp(0, 255, progress);
+                var scale = Util.lerp(0.5, 1, progress);
+                w.set_scale(scale, scale);
+            } else {
+                w.stateAdjustment.value = workspaceMode;
+                const distanceToCurrentWorkspace = Math.abs(adj.value - index);
+                const scaleProgress = 1 - Math.clamp(distanceToCurrentWorkspace, 0, 1);
+                var scale = Util.lerp(WORKSPACE_INACTIVE_SCALE, 1, scaleProgress);
+                w.set_scale(scale, scale);
+            }
 
-            const distanceToCurrentWorkspace = Math.abs(adj.value - index);
-
-            const scaleProgress = 1 - Math.clamp(distanceToCurrentWorkspace, 0, 1);
-
-            const scale = Util.lerp(WORKSPACE_INACTIVE_SCALE, 1, scaleProgress);
-            w.set_scale(scale, scale);
         });
     }
 
@@ -346,7 +357,7 @@ class WorkspacesView extends WorkspacesViewBase {
         if (this.get_n_children() === 0)
             return;
 
-        const vertical = 1; //TODO: turn into option global.workspaceManager.layout_rows === -1;
+        const vertical = 1; //TODO: turn into setting
         const rtl = this.text_direction === Clutter.TextDirection.RTL;
 
         const fitMode = this._fitModeAdjustment.value;
@@ -832,7 +843,7 @@ class WorkspacesDisplay extends St.Widget {
             actor: this,
             value: FitMode.SINGLE,
             lower: FitMode.SINGLE,
-            upper: FitMode.ALL,
+            upper: FitMode.SINGLE,
         });
 
         let workspaceManager = global.workspace_manager;

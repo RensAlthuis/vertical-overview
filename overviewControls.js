@@ -9,11 +9,11 @@ const Main = imports.ui.main;
 const Overview = imports.ui.overview;
 const Util = imports.misc.util;
 const WindowManager = imports.ui.windowManager;
-const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const WorkspacesView = Self.imports.workspacesView;
 const SearchController = Self.imports.searchController;
+const WorkspaceThumbnail = Self.imports.workspaceThumbnail;
 
 
 const SMALL_WORKSPACE_RATIO = 0.15;
@@ -48,34 +48,30 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         stateAdjustment.connect('notify::value', () => this.layout_changed());
     }
 
-    _computeWorkspacesBoxForState(state, box, searchHeight, leftOffset, rightOffset) {
+    _computeWorkspacesBoxForState(state, box, searchHeight, leftOffset, rightOffset, thumbnailsHeight) {
         const workspaceBox = box.copy();
         const [width, height] = workspaceBox.get_size();
         const { spacing } = this;
+        const { expandFraction } = this._workspacesThumbnails;
 
         switch (state) {
         case ControlsState.HIDDEN:
             break;
         case ControlsState.WINDOW_PICKER:
+        case ControlsState.APP_GRID:
             workspaceBox.set_origin(
                 leftOffset,
-                searchHeight + spacing);
+                searchHeight + spacing * expandFraction);
             workspaceBox.set_size(
                 width - leftOffset - rightOffset,
-                height - searchHeight - spacing);
-            break;
-        case ControlsState.APP_GRID:
-            workspaceBox.set_origin(0, searchHeight + spacing);
-            workspaceBox.set_size(
-                width,
-                Math.round(height * SMALL_WORKSPACE_RATIO));
+                height - searchHeight - spacing - thumbnailsHeight - spacing);
             break;
         }
 
         return workspaceBox;
     }
 
-    _getAppDisplayBoxForState(state, box, searchHeight, appGridBox) {
+    _getAppDisplayBoxForState(state, box, searchHeight) {
         const [width, height] = box.get_size();
         const appDisplayBox = new Clutter.ActorBox();
         const { spacing } = this;
@@ -87,14 +83,13 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
             break;
         case ControlsState.APP_GRID:
             appDisplayBox.set_origin(0,
-                searchHeight + spacing + appGridBox.get_height());
+                searchHeight + spacing);
             break;
         }
 
         appDisplayBox.set_size(width,
             height -
-            searchHeight - spacing -
-            appGridBox.get_height()
+            searchHeight - spacing
         );
 
         return appDisplayBox;
@@ -129,25 +124,25 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
 
         availableHeight -= searchHeight + spacing;
 
-        // // Workspace Thumbnails
-        // let thumbnailsHeight = 0;
-        // if (this._workspacesThumbnails.visible) {
-        //     const { expandFraction } = this._workspacesThumbnails;
-        //     [thumbnailsHeight] =
-        //         this._workspacesThumbnails.get_preferred_height(width);
-        //     thumbnailsHeight = Math.min(
-        //         thumbnailsHeight * expandFraction,
-        //         height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
-        //     childBox.set_origin(0, searchHeight + spacing);
-        //     childBox.set_size(width, thumbnailsHeight);
-        //     this._workspacesThumbnails.allocate(childBox);
-        // }
+        // Workspace Thumbnails
+        let thumbnailsHeight = 0;
+        if (this._workspacesThumbnails.visible) {
+            const { expandFraction } = this._workspacesThumbnails;
+            [thumbnailsHeight] =
+                this._workspacesThumbnails.get_preferred_height(width);
+            thumbnailsHeight = Math.min(
+                thumbnailsHeight * expandFraction,
+                height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
+            childBox.set_origin(box.x2, searchHeight + spacing);
+            childBox.set_size(width, thumbnailsHeight);
+            this._workspacesThumbnails.allocate(childBox);
+        }
 
         let leftOffset = 100; //TODO: fixme;
         let rightOffset = 100; //TODO: fixme;
 
         // Workspaces
-        let params = [box, searchHeight, leftOffset, rightOffset];
+        let params = [box, searchHeight, leftOffset, rightOffset, thumbnailsHeight];
         const transitionParams = this._stateAdjustment.getStateTransitionParams();
 
         // Update cached boxes
@@ -167,11 +162,8 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
 
         this._workspacesDisplay.allocate(workspacesBox);
 
-        // AppDisplay
-        const workspaceAppGridBox =
-            this._cachedWorkspaceBoxes.get(ControlsState.APP_GRID);
-
-        params = [box, searchHeight, workspaceAppGridBox];
+        // App grid
+        params = [box, searchHeight];
         let appDisplayBox;
         if (!transitionParams.transitioning) {
             appDisplayBox =
@@ -412,7 +404,7 @@ class ControlsManager extends St.Widget {
         case ControlsState.WINDOW_PICKER:
             return WorkspacesView.FitMode.SINGLE;
         case ControlsState.APP_GRID:
-            return WorkspacesView.FitMode.ALL;
+            return WorkspacesView.FitMode.SINGLE;
         default:
             return WorkspacesView.FitMode.SINGLE;
         }
@@ -543,7 +535,6 @@ class ControlsManager extends St.Widget {
                 duration: SIDE_CONTROLS_ANIMATION_TIME,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD
             });
-
         } else {
             Main.overview.show(ControlsState.APP_GRID);
             this.showAppsGrid = true;
@@ -571,8 +562,7 @@ class ControlsManager extends St.Widget {
                 duration: SIDE_CONTROLS_ANIMATION_TIME,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => {
-                    this.showAppsGrid =
-                        finalState === ControlsState.APP_GRID;
+                    this.showAppsGrid = finalState === ControlsState.APP_GRID;
                 },
             });
         }
