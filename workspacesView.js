@@ -270,22 +270,11 @@ class WorkspacesView extends WorkspacesViewBase {
 
         // Fade and scale inactive workspaces
         this._workspaces.forEach((w, index) => {
-            if(finalState === ControlsState.APP_GRID) {
-                w.opacity = Util.lerp(0, 255, 1-progress);
-                var scale = Util.lerp(0.5, 1, 1-progress);
-                w.set_scale(scale, scale);
-            } else if(initialState === ControlsState.APP_GRID) {
-                w.opacity = Util.lerp(0, 255, progress);
-                var scale = Util.lerp(0.5, 1, progress);
-                w.set_scale(scale, scale);
-            } else {
-                w.stateAdjustment.value = workspaceMode;
-                const distanceToCurrentWorkspace = Math.abs(adj.value - index);
-                const scaleProgress = 1 - Math.clamp(distanceToCurrentWorkspace, 0, 1);
-                var scale = Util.lerp(WORKSPACE_INACTIVE_SCALE, 1, scaleProgress);
-                w.set_scale(scale, scale);
-            }
-
+            w.stateAdjustment.value = workspaceMode;
+            const distanceToCurrentWorkspace = Math.abs(adj.value - index);
+            const scaleProgress = 1 - Math.clamp(distanceToCurrentWorkspace, 0, 1);
+            var scale = Util.lerp(WORKSPACE_INACTIVE_SCALE, 1, scaleProgress);
+            w.set_scale(scale, scale);
         });
     }
 

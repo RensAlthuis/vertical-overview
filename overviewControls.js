@@ -138,8 +138,8 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
             this._workspacesThumbnails.allocate(childBox);
         }
 
-        let leftOffset = 100; //TODO: fixme;
-        let rightOffset = 100; //TODO: fixme;
+        let leftOffset = 200; //TODO: fixme;
+        let rightOffset = 200; //TODO: fixme;
 
         // Workspaces
         let params = [box, searchHeight, leftOffset, rightOffset, thumbnailsHeight];
@@ -357,21 +357,18 @@ class ControlsManager extends St.Widget {
 
         this._a11ySettings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
 
-        // This is part of the original, but since the original already registered these functions doing again will cause problems
-        // Instead of removing the original bindings we just skip them.
-        /*
-        global.display.connect('overlay-key', () => {
-            if (this._a11ySettings.get_boolean('stickykeys-enable'))
-                return;
+        // global.display.connect('overlay-key', () => {
+        //     if (this._a11ySettings.get_boolean('stickykeys-enable'))
+        //         return;
 
-            const { initialState, finalState, transitioning } =
-                this._stateAdjustment.getStateTransitionParams();
+        //     const { initialState, finalState, transitioning } =
+        //         this._stateAdjustment.getStateTransitionParams();
 
-            if (transitioning && finalState > initialState)
-                this._shiftState(Meta.MotionDirection.UP);
-            else
-                Main.overview.toggle();
-        });
+        //     if (transitioning && finalState > initialState)
+        //         this._shiftState(Meta.MotionDirection.UP);
+        //     else
+        //         Main.overview.toggle();
+        // });
 
         Main.wm.addKeybinding(
             'toggle-application-view',
@@ -391,7 +388,6 @@ class ControlsManager extends St.Widget {
               Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
               Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
               () => this._shiftState(Meta.MotionDirection.DOWN));
-        */
 
         this.connect('destroy', this._onDestroy.bind(this));
 
@@ -535,10 +531,24 @@ class ControlsManager extends St.Widget {
                 duration: SIDE_CONTROLS_ANIMATION_TIME,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD
             });
-        } else {
+
+            if(!this.showAppsGrid) {
+                this._workspacesDisplay.setPrimaryWorkspaceVisible(true);
+            }
+         } else {
             Main.overview.show(ControlsState.APP_GRID);
             this.showAppsGrid = true;
         }
+
+        this._workspacesDisplay.ease({
+            opacity: this.showAppsGrid ? 0 : 255,
+            duration: SIDE_CONTROLS_ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => {
+                this._workspacesDisplay.reactive = !this.showAppsGrid;
+                this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.showAppsGrid);
+            },
+        });
     }
 
     _shiftState(direction) {
@@ -586,7 +596,7 @@ class ControlsManager extends St.Widget {
     }
 
     vfunc_unmap() {
-        this._workspacesDisplay.hide();
+        this._workspacesDisplay.vfunc_hide();
         super.vfunc_unmap();
     }
 

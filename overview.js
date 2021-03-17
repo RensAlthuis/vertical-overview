@@ -189,7 +189,6 @@ var Overview = class {
             dragMotion: this._onDragMotion.bind(this),
         };
 
-
         Main.layoutManager.overviewGroup.connect('scroll-event',
                                                  this._onScrollEvent.bind(this));
         Main.xdndHandler.connect('drag-begin', this._onDragBegin.bind(this));
