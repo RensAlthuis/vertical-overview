@@ -47,7 +47,7 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         stateAdjustment.connect('notify::value', () => this.layout_changed());
     }
 
-    _computeWorkspacesBoxForState(state, box, startY, searchHeight, leftOffset, rightOffset, thumbnailsHeight) {
+    _computeWorkspacesBoxForState(state, box, startY, searchHeight, leftOffset, rightOffset) {
         const workspaceBox = box.copy();
         const [width, height] = workspaceBox.get_size();
         const { spacing } = this;
@@ -142,7 +142,6 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         availableHeight -= searchHeight + spacing;
 
         // Workspace Thumbnails
-        let thumbnailsHeight = height;
         if (this._workspacesThumbnails.visible) {
             childBox.set_origin(width - rightOffset, startY);
             childBox.set_size(rightOffset, height);
@@ -150,7 +149,7 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         }
 
         // Workspaces
-        let params = [box, startY, searchHeight, leftOffset, rightOffset, thumbnailsHeight];
+        let params = [box, startY, searchHeight, leftOffset, rightOffset];
         const transitionParams = this._stateAdjustment.getStateTransitionParams();
 
         // Update cached boxes
@@ -423,27 +422,21 @@ class ControlsManager extends St.Widget {
             this._stateAdjustment.getStateTransitionParams();
 
         const paramsForState = s => {
-            let opacity, scale, translationY;
+            let opacity, scale;
             switch (s) {
             case ControlsState.HIDDEN:
             case ControlsState.WINDOW_PICKER:
+            case ControlsState.APP_GRID:
                 opacity = 255;
                 scale = 1;
-                translationY = 0;
-                break;
-            case ControlsState.APP_GRID:
-                opacity = 0;
-                scale = 0.5;
-                translationY = this._thumbnailsBox.height / 2;
                 break;
             default:
                 opacity = 255;
                 scale = 1;
-                translationY = 0;
                 break;
             }
 
-            return { opacity, scale, translationY };
+            return { opacity, scale } ;
         };
 
         const initialParams = paramsForState(initialState);
@@ -452,14 +445,13 @@ class ControlsManager extends St.Widget {
         return [
             Util.lerp(initialParams.opacity, finalParams.opacity, progress),
             Util.lerp(initialParams.scale, finalParams.scale, progress),
-            Util.lerp(initialParams.translationY, finalParams.translationY, progress),
         ];
     }
 
     _updateThumbnailsBox(animate = false) {
         const { shouldShow } = this._thumbnailsBox;
         const { searchActive } = this._searchController;
-        const [opacity, scale, translationY] = this._getThumbnailsBoxParams();
+        const [opacity, scale] = this._getThumbnailsBoxParams();
 
         const thumbnailsBoxVisible = shouldShow && !searchActive && opacity !== 0;
         if (thumbnailsBoxVisible) {
@@ -477,7 +469,6 @@ class ControlsManager extends St.Widget {
         if (!searchActive) {
             params.scale_x = scale;
             params.scale_y = scale;
-            params.translation_y = translationY;
         }
 
         this._thumbnailsBox.ease(params);

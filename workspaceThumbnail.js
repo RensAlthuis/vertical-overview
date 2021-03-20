@@ -652,7 +652,8 @@ var ThumbnailsBox = GObject.registerClass({
 
         this._dropWorkspace = -1;
         this._dropPlaceholderPos = -1;
-        this._dropPlaceholder = new St.Bin({ style_class: 'placeholder' });
+        this._dropPlaceholder = new St.Bin();
+        this._dropPlaceholder.set_style('background-image: url("resource:///org/gnome/shell/theme/dash-placeholder.svg"); background-size: contain; height: 18px;')
         this.add_actor(this._dropPlaceholder);
         this._spliceIndex = -1;
 
@@ -746,10 +747,7 @@ var ThumbnailsBox = GObject.registerClass({
     }
 
     _updateShouldShow() {
-        const { nWorkspaces } = global.workspace_manager;
-        const shouldShow = this._settings.get_boolean('dynamic-workspaces')
-            ? nWorkspaces > NUM_WORKSPACES_THRESHOLD
-            : nWorkspaces > 1;
+        const shouldShow = true;
 
         if (this._shouldShow === shouldShow)
             return;
@@ -1357,7 +1355,7 @@ var ThumbnailsBox = GObject.registerClass({
 
             let y1 = box.x1 + (height + spacing) * i;
 
-            const [placeholderWidth, placeholderHeight] = this._dropPlaceholder.get_preferred_width(-1);
+            const [placeholderWidth, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
             if (i === this._dropPlaceholderPos) {
                 childBox.set_origin(box.x1, y1)
                 childBox.set_size(placeholderWidth, placeholderHeight);
