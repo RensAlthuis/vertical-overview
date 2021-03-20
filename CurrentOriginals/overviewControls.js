@@ -4,18 +4,18 @@
 const { Clutter, Gio, GObject, Meta, Shell, St } = imports.gi;
 
 const AppDisplay = imports.ui.appDisplay;
+const Dash = imports.ui.dash;
 const Layout = imports.ui.layout;
 const Main = imports.ui.main;
 const Overview = imports.ui.overview;
+const SearchController = imports.ui.searchController;
 const Util = imports.misc.util;
 const WindowManager = imports.ui.windowManager;
-
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const SearchController = Self.imports.searchController;
-const WorkspacesView = Self.imports.workspacesView;
-const WorkspaceThumbnail = Self.imports.workspaceThumbnail;
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+const WorkspacesView = imports.ui.workspacesView;
 
 const SMALL_WORKSPACE_RATIO = 0.15;
+const DASH_MAX_HEIGHT_RATIO = 0.15;
 
 const A11Y_SCHEMA = 'org.gnome.desktop.a11y.keyboard';
 
@@ -30,7 +30,7 @@ var ControlsState = {
 var ControlsManagerLayout = GObject.registerClass(
 class ControlsManagerLayout extends Clutter.BoxLayout {
     _init(searchEntry, appDisplay, workspacesDisplay, workspacesThumbnails,
-        searchController, stateAdjustment) {
+        searchController, dash, stateAdjustment) {
         super._init({ orientation: Clutter.Orientation.VERTICAL });
 
         this._appDisplay = appDisplay;
@@ -39,7 +39,7 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         this._stateAdjustment = stateAdjustment;
         this._searchEntry = searchEntry;
         this._searchController = searchController;
-        this.showAppsGrid = false;
+        this._dash = dash;
 
         this._cachedWorkspaceBoxes = new Map();
         this._postAllocationCallbacks = [];
@@ -47,7 +47,7 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         stateAdjustment.connect('notify::value', () => this.layout_changed());
     }
 
-    _computeWorkspacesBoxForState(state, box, startY, searchHeight, leftOffset, rightOffset, thumbnailsHeight) {
+    _computeWorkspacesBoxForState(state, box, startY, searchHeight, dashHeight, thumbnailsHeight) {
         const workspaceBox = box.copy();
         const [width, height] = workspaceBox.get_size();
         const { spacing } = this;
@@ -57,20 +57,27 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         case ControlsState.HIDDEN:
             break;
         case ControlsState.WINDOW_PICKER:
+            workspaceBox.set_origin(0,
+                startY + searchHeight + spacing +
+                thumbnailsHeight + spacing * expandFraction);
+            workspaceBox.set_size(width,
+                height -
+                dashHeight - spacing -
+                searchHeight - spacing -
+                thumbnailsHeight - spacing * expandFraction);
+            break;
         case ControlsState.APP_GRID:
-            workspaceBox.set_origin(
-                leftOffset + spacing,
-                startY + searchHeight + spacing * expandFraction);
+            workspaceBox.set_origin(0, startY + searchHeight + spacing);
             workspaceBox.set_size(
-                width - leftOffset - rightOffset,
-                height - searchHeight - spacing * expandFraction);
+                width,
+                Math.round(height * SMALL_WORKSPACE_RATIO));
             break;
         }
 
         return workspaceBox;
     }
 
-    _getAppDisplayBoxForState(state, box, startY, searchHeight) {
+    _getAppDisplayBoxForState(state, box, startY, searchHeight, dashHeight, appGridBox) {
         const [width, height] = box.get_size();
         const appDisplayBox = new Clutter.ActorBox();
         const { spacing } = this;
@@ -82,14 +89,15 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
             break;
         case ControlsState.APP_GRID:
             appDisplayBox.set_origin(0,
-                startY + searchHeight + spacing);
+                startY + searchHeight + spacing + appGridBox.get_height());
             break;
         }
 
         appDisplayBox.set_size(width,
             height -
-            searchHeight - spacing
-        );
+            searchHeight - spacing -
+            appGridBox.get_height() - spacing -
+            dashHeight);
 
         return appDisplayBox;
     }
@@ -120,9 +128,6 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
     vfunc_allocate(container, box) {
         const childBox = new Clutter.ActorBox();
 
-        let leftOffset = 200; //TODO: fixme;
-        let rightOffset = 200; //TODO: fixme;
-
         const { spacing } = this;
 
         let startY = 0;
@@ -135,22 +140,40 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
 
         // Search entry
         let [searchHeight] = this._searchEntry.get_preferred_height(width);
-        childBox.set_origin(leftOffset, startY);
-        childBox.set_size(width - leftOffset - rightOffset, searchHeight);
+        childBox.set_origin(0, startY);
+        childBox.set_size(width, searchHeight);
         this._searchEntry.allocate(childBox);
 
         availableHeight -= searchHeight + spacing;
 
+        // Dash
+        const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
+        this._dash.setMaxSize(width, maxDashHeight);
+
+        let [, dashHeight] = this._dash.get_preferred_height(width);
+        dashHeight = Math.min(dashHeight, maxDashHeight);
+        childBox.set_origin(0, startY + height - dashHeight);
+        childBox.set_size(width, dashHeight);
+        this._dash.allocate(childBox);
+
+        availableHeight -= dashHeight + spacing;
+
         // Workspace Thumbnails
-        let thumbnailsHeight = height;
+        let thumbnailsHeight = 0;
         if (this._workspacesThumbnails.visible) {
-            childBox.set_origin(width - rightOffset, startY);
-            childBox.set_size(rightOffset, height);
+            const { expandFraction } = this._workspacesThumbnails;
+            [thumbnailsHeight] =
+                this._workspacesThumbnails.get_preferred_height(width);
+            thumbnailsHeight = Math.min(
+                thumbnailsHeight * expandFraction,
+                height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
+            childBox.set_origin(0, startY + searchHeight + spacing);
+            childBox.set_size(width, thumbnailsHeight);
             this._workspacesThumbnails.allocate(childBox);
         }
 
         // Workspaces
-        let params = [box, startY, searchHeight, leftOffset, rightOffset, thumbnailsHeight];
+        let params = [box, startY, searchHeight, dashHeight, thumbnailsHeight];
         const transitionParams = this._stateAdjustment.getStateTransitionParams();
 
         // Update cached boxes
@@ -170,24 +193,26 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
 
         this._workspacesDisplay.allocate(workspacesBox);
 
-        // App grid
+        // AppDisplay
         if (this._appDisplay.visible) {
+            const workspaceAppGridBox =
+                this._cachedWorkspaceBoxes.get(ControlsState.APP_GRID);
 
-        params = [box, startY, searchHeight];
-        let appDisplayBox;
-        if (!transitionParams.transitioning) {
-            appDisplayBox =
-                this._getAppDisplayBoxForState(transitionParams.currentState, ...params);
-        } else {
-            const initialBox =
-                this._getAppDisplayBoxForState(transitionParams.initialState, ...params);
-            const finalBox =
-                this._getAppDisplayBoxForState(transitionParams.finalState, ...params);
+            params = [box, startY, searchHeight, dashHeight, workspaceAppGridBox];
+            let appDisplayBox;
+            if (!transitionParams.transitioning) {
+                appDisplayBox =
+                    this._getAppDisplayBoxForState(transitionParams.currentState, ...params);
+            } else {
+                const initialBox =
+                    this._getAppDisplayBoxForState(transitionParams.initialState, ...params);
+                const finalBox =
+                    this._getAppDisplayBoxForState(transitionParams.finalState, ...params);
 
-            appDisplayBox = initialBox.interpolate(finalBox, transitionParams.progress);
-        }
+                appDisplayBox = initialBox.interpolate(finalBox, transitionParams.progress);
+            }
 
-        this._appDisplay.allocate(appDisplayBox);
+            this._appDisplay.allocate(appDisplayBox);
         }
 
         // Search
@@ -271,6 +296,8 @@ class ControlsManager extends St.Widget {
             clip_to_allocation: true,
         });
 
+        this._ignoreShowAppsButtonToggle = false;
+
         this._searchEntry = new St.Entry({
             style_class: 'search-entry',
             /* Translators: this is the text displayed
@@ -286,6 +313,8 @@ class ControlsManager extends St.Widget {
             child: this._searchEntry,
             x_align: Clutter.ActorAlign.CENTER,
         });
+
+        this.dash = new Dash.Dash();
 
         let workspaceManager = global.workspace_manager;
         let activeWorkspaceIndex = workspaceManager.get_active_workspace_index();
@@ -308,7 +337,8 @@ class ControlsManager extends St.Widget {
                 this._updateAdjustment.bind(this));
 
         this._searchController = new SearchController.SearchController(
-            this._searchEntry);
+            this._searchEntry,
+            this.dash.showAppsButton);
         this._searchController.connect('notify::search-active', this._onSearchChanged.bind(this));
 
         this._thumbnailsBox = new WorkspaceThumbnail.ThumbnailsBox(
@@ -331,6 +361,7 @@ class ControlsManager extends St.Widget {
 
         this.add_child(this._searchEntryBin);
         this.add_child(this._appDisplay);
+        this.add_child(this.dash);
         this.add_child(this._searchController);
         this.add_child(this._thumbnailsBox);
         this.add_child(this._workspacesDisplay);
@@ -341,7 +372,11 @@ class ControlsManager extends St.Widget {
             this._workspacesDisplay,
             this._thumbnailsBox,
             this._searchController,
+            this.dash,
             this._stateAdjustment);
+
+        this.dash.showAppsButton.connect('notify::checked',
+            this._onShowAppsButtonToggled.bind(this));
 
         Main.ctrlAltTabManager.addGroup(
             this.appDisplay,
@@ -349,7 +384,7 @@ class ControlsManager extends St.Widget {
             'view-app-grid-symbolic', {
                 proxy: this,
                 focusCallback: () => {
-                    this.showAppsGrid = true;
+                    this.dash.showAppsButton.checked = true;
                     this.appDisplay.navigate_focus(
                         null, St.DirectionType.TAB_FORWARD, false);
                 },
@@ -361,7 +396,7 @@ class ControlsManager extends St.Widget {
             'focus-windows-symbolic', {
                 proxy: this,
                 focusCallback: () => {
-                    this.showAppsGrid = false;
+                    this.dash.showAppsButton.checked = false;
                     this._workspacesDisplay.navigate_focus(
                         null, St.DirectionType.TAB_FORWARD, false);
                 },
@@ -369,18 +404,18 @@ class ControlsManager extends St.Widget {
 
         this._a11ySettings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
 
-        // global.display.connect('overlay-key', () => {
-        //     if (this._a11ySettings.get_boolean('stickykeys-enable'))
-        //         return;
+        global.display.connect('overlay-key', () => {
+            if (this._a11ySettings.get_boolean('stickykeys-enable'))
+                return;
 
-        //     const { initialState, finalState, transitioning } =
-        //         this._stateAdjustment.getStateTransitionParams();
+            const { initialState, finalState, transitioning } =
+                this._stateAdjustment.getStateTransitionParams();
 
-        //     if (transitioning && finalState > initialState)
-        //         this._shiftState(Meta.MotionDirection.UP);
-        //     else
-        //         Main.overview.toggle();
-        // });
+            if (transitioning && finalState > initialState)
+                this._shiftState(Meta.MotionDirection.UP);
+            else
+                Main.overview.toggle();
+        });
 
         Main.wm.addKeybinding(
             'toggle-application-view',
@@ -392,14 +427,14 @@ class ControlsManager extends St.Widget {
         Main.wm.addKeybinding('shift-overview-up',
             new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
             Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
-             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-             () => this._shiftState(Meta.MotionDirection.UP));
+            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+            () => this._shiftState(Meta.MotionDirection.UP));
 
-          Main.wm.addKeybinding('shift-overview-down',
-              new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
-              Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
-              Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
-              () => this._shiftState(Meta.MotionDirection.DOWN));
+        Main.wm.addKeybinding('shift-overview-down',
+            new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
+            Meta.KeyBindingFlags.IGNORE_AUTOREPEAT,
+            Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
+            () => this._shiftState(Meta.MotionDirection.DOWN));
 
         this.connect('destroy', this._onDestroy.bind(this));
 
@@ -412,7 +447,7 @@ class ControlsManager extends St.Widget {
         case ControlsState.WINDOW_PICKER:
             return WorkspacesView.FitMode.SINGLE;
         case ControlsState.APP_GRID:
-            return WorkspacesView.FitMode.SINGLE;
+            return WorkspacesView.FitMode.ALL;
         default:
             return WorkspacesView.FitMode.SINGLE;
         }
@@ -540,34 +575,28 @@ class ControlsManager extends St.Widget {
         });
     }
 
-    _toggleAppsPage() {
-        if (Main.overview.visible) {
-            const checked = this.showAppsGrid;
-            this.showAppsGrid = !checked;
-            const value = checked ? ControlsState.WINDOW_PICKER : ControlsState.APP_GRID;
-            this._stateAdjustment.remove_transition('value');
-            this._stateAdjustment.ease(value, {
-                duration: SIDE_CONTROLS_ANIMATION_TIME,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD
-            });
+    _onShowAppsButtonToggled() {
+        if (this._ignoreShowAppsButtonToggle)
+            return;
 
-            if(!this.showAppsGrid) {
-                this._workspacesDisplay.setPrimaryWorkspaceVisible(true);
-            }
-         } else {
-            Main.overview.show(ControlsState.APP_GRID);
-            this.showAppsGrid = true;
-        }
+        const checked = this.dash.showAppsButton.checked;
 
-        this._workspacesDisplay.ease({
-            opacity: this.showAppsGrid ? 0 : 255,
+        const value = checked
+            ? ControlsState.APP_GRID : ControlsState.WINDOW_PICKER;
+        this._stateAdjustment.remove_transition('value');
+        this._stateAdjustment.ease(value, {
             duration: SIDE_CONTROLS_ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                this._workspacesDisplay.reactive = !this.showAppsGrid;
-                this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.showAppsGrid);
-            },
         });
+    }
+
+    _toggleAppsPage() {
+        if (Main.overview.visible) {
+            const checked = this.dash.showAppsButton.checked;
+            this.dash.showAppsButton.checked = !checked;
+        } else {
+            Main.overview.show(ControlsState.APP_GRID);
+        }
     }
 
     _shiftState(direction) {
@@ -591,7 +620,8 @@ class ControlsManager extends St.Widget {
                 duration: SIDE_CONTROLS_ANIMATION_TIME,
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD,
                 onComplete: () => {
-                    this.showAppsGrid = finalState === ControlsState.APP_GRID;
+                    this.dash.showAppsButton.checked =
+                        finalState === ControlsState.APP_GRID;
                 },
             });
         }
@@ -620,6 +650,7 @@ class ControlsManager extends St.Widget {
     }
 
     animateToOverview(state, callback) {
+        this._ignoreShowAppsButtonToggle = true;
 
         this._searchController.prepareToEnterOverview();
         this._workspacesDisplay.prepareToEnterOverview();
@@ -636,12 +667,14 @@ class ControlsManager extends St.Widget {
             },
         });
 
-        this.showAppsGrid =
+        this.dash.showAppsButton.checked =
             state === ControlsState.APP_GRID;
 
+        this._ignoreShowAppsButtonToggle = false;
     }
 
     animateFromOverview(callback) {
+        this._ignoreShowAppsButtonToggle = true;
 
         this._workspacesDisplay.prepareToLeaveOverview();
         if (!this._workspacesDisplay.activeWorkspaceHasMaximizedWindows())
@@ -651,7 +684,8 @@ class ControlsManager extends St.Widget {
             duration: Overview.ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onStopped: () => {
-                this.showAppsGrid = false;
+                this.dash.showAppsButton.checked = false;
+                this._ignoreShowAppsButtonToggle = false;
 
                 if (callback)
                     callback();
@@ -691,7 +725,7 @@ class ControlsManager extends St.Widget {
         if (target === ControlsState.HIDDEN)
             this._workspacesDisplay.prepareToLeaveOverview();
 
-        this.showAppsGrid =
+        this.dash.showAppsButton.checked =
             target === ControlsState.APP_GRID;
 
         this._stateAdjustment.remove_transition('value');
@@ -705,6 +739,8 @@ class ControlsManager extends St.Widget {
     }
 
     async runStartupAnimation(callback) {
+        this._ignoreShowAppsButtonToggle = true;
+
         this._searchController.prepareToEnterOverview();
         this._workspacesDisplay.prepareToEnterOverview();
 
@@ -714,7 +750,8 @@ class ControlsManager extends St.Widget {
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
         });
 
-        this.showAppsGrid = false;
+        this.dash.showAppsButton.checked = false;
+        this._ignoreShowAppsButtonToggle = false;
 
         // Set the opacity here to avoid a 1-frame flicker
         this.opacity = 0;
@@ -741,6 +778,17 @@ class ControlsManager extends St.Widget {
             translation_y: 0,
             duration: STARTUP_ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+
+        // The Dash rises from the bottom. This is the last animation to finish,
+        // so run the callback there.
+        this.dash.translation_y = this.dash.height;
+        this.dash.ease({
+            translation_y: 0,
+            delay: STARTUP_ANIMATION_TIME,
+            duration: STARTUP_ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onComplete: () => callback(),
         });
     }
 

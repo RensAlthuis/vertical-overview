@@ -8,7 +8,6 @@ const WorkspacesView = imports.ui.workspacesView;
 const OverviewControls = imports.ui.overviewControls;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const VerticalOverview = Self.imports.overview;
 const VerticalOverviewControls = Self.imports.overviewControls;
 
 let overviewControls;

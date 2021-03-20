@@ -9,9 +9,7 @@ const OverviewControls = imports.ui.overviewControls;
 const SwipeTracker = imports.ui.swipeTracker;
 const Util = imports.misc.util;
 const Workspace = imports.ui.workspace;
-
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const { ThumbnailsBox, MAX_THUMBNAIL_SCALE } = Self.imports.workspaceThumbnail;
+const { ThumbnailsBox, MAX_THUMBNAIL_SCALE } = imports.ui.workspaceThumbnail;
 
 var WORKSPACE_SWITCH_TIME = 250;
 
@@ -30,7 +28,7 @@ var WorkspacesViewBase = GObject.registerClass({
     _init(monitorIndex, overviewAdjustment) {
         super._init({
             style_class: 'workspaces-view',
-            clip_to_allocation: true,
+            clip_to_allocation: monitorIndex !== Main.layoutManager.primaryIndex,
             x_expand: true,
             y_expand: true,
         });
@@ -249,7 +247,7 @@ class WorkspacesView extends WorkspacesViewBase {
         case ControlsState.WINDOW_PICKER:
             return 1;
         case ControlsState.APP_GRID:
-            return 1;
+            return 0;
         }
 
         return 0;
@@ -348,7 +346,7 @@ class WorkspacesView extends WorkspacesViewBase {
         if (this.get_n_children() === 0)
             return;
 
-        const vertical = 1; //TODO: turn into setting
+        const vertical = global.workspaceManager.layout_rows === -1;
         const rtl = this.text_direction === Clutter.TextDirection.RTL;
 
         const fitMode = this._fitModeAdjustment.value;
@@ -839,7 +837,7 @@ class WorkspacesDisplay extends St.Widget {
             actor: this,
             value: FitMode.SINGLE,
             lower: FitMode.SINGLE,
-            upper: FitMode.SINGLE,
+            upper: FitMode.ALL,
         });
 
         let workspaceManager = global.workspace_manager;
