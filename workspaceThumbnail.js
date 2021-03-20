@@ -52,7 +52,7 @@ var WindowClone = GObject.registerClass({
         'selected': { param_types: [GObject.TYPE_UINT] },
     },
 }, class WindowClone extends Clutter.Actor {
-    _init(realWindow) {
+    _init(realWindow, dragActorWidth) {
         let clone = new Clutter.Clone({ source: realWindow });
         super._init({
             layout_manager: new PrimaryActorLayout(clone),
@@ -78,8 +78,8 @@ var WindowClone = GObject.registerClass({
 
         this._draggable = DND.makeDraggable(this,
                                             { restoreOnSuccess: true,
-                                              dragActorMaxSize: Workspace.WINDOW_DND_SIZE,
-                                              dragActorOpacity: Workspace.DRAGGING_WINDOW_OPACITY });
+                                              dragActorMaxSize: dragActorWidth,
+                                              dragActorOpacity: 127});
         this._draggable.connect('drag-begin', this._onDragBegin.bind(this));
         this._draggable.connect('drag-cancelled', this._onDragCancelled.bind(this));
         this._draggable.connect('drag-end', this._onDragEnd.bind(this));
@@ -218,14 +218,19 @@ var WindowClone = GObject.registerClass({
         // with a new one on the target workspace.
         let parent = this.get_parent();
         if (parent !== null) {
-            if (this._stackAbove == null)
+            if (this._stackAbove == null) {
                 parent.set_child_below_sibling(this, null);
+            }
             else
                 parent.set_child_above_sibling(this, this._stackAbove);
         }
 
 
         this.emit('drag-end');
+    }
+
+    setDragScale(scale) {
+        this._draggable._dragActorMaxSize = this.realWindow.width * scale * 0.5;
     }
 });
 
@@ -496,7 +501,7 @@ var WorkspaceThumbnail = GObject.registerClass({
 
     // Create a clone of a (non-desktop) window and add it to the window list
     _addWindowClone(win) {
-        let clone = new WindowClone(win);
+        let clone = new WindowClone(win, win.width * this._viewport.scale_x * 0.5);
 
         clone.connect('selected', (o, time) => {
             this.activate(time);
@@ -571,8 +576,9 @@ var WorkspaceThumbnail = GObject.registerClass({
 
         if (source.metaWindow) {
             let win = source.metaWindow.get_compositor_private();
-            if (this._isMyWindow(win))
+            if (this._isMyWindow(win)) {
                 return false;
+            }
 
             let metaWindow = win.get_meta_window();
 
@@ -603,6 +609,10 @@ var WorkspaceThumbnail = GObject.registerClass({
 
     setScale(scaleX, scaleY) {
         this._viewport.set_scale(scaleX, scaleY);
+
+        for (var window of this._windows) {
+            window.setDragScale(scaleX);
+        }
     }
 });
 
@@ -765,9 +775,9 @@ var ThumbnailsBox = GObject.registerClass({
     }
 
     _activateThumbnailAtPoint(stageX, stageY, time) {
-        const [r_, x] = this.transform_stage_point(stageX, stageY);
+        const [_r, _x, y] = this.transform_stage_point(stageX, stageY);
 
-        const thumbnail = this._thumbnails.find(t => x >= t.x && x <= t.x + t.width);
+        const thumbnail = this._thumbnails.find(t => y >= t.y && y <= t.y + t.height);
         if (thumbnail)
             thumbnail.activate(time);
     }
@@ -834,51 +844,33 @@ var ThumbnailsBox = GObject.registerClass({
     _getPlaceholderTarget(index, spacing, rtl) {
         const workspace = this._thumbnails[index];
 
-        let targetX1;
-        let targetX2;
-
-        if (rtl) {
-            const baseX = workspace.x + workspace.width;
-            targetX1 = baseX - WORKSPACE_CUT_SIZE;
-            targetX2 = baseX + spacing + WORKSPACE_CUT_SIZE;
-        } else {
-            targetX1 = workspace.x - spacing - WORKSPACE_CUT_SIZE;
-            targetX2 = workspace.x + WORKSPACE_CUT_SIZE;
-        }
+        let targetY1 = workspace.y - spacing - WORKSPACE_CUT_SIZE;
+        let targetY2 = workspace.y + WORKSPACE_CUT_SIZE;
 
         if (index === 0) {
-            if (rtl)
-                targetX2 -= spacing + WORKSPACE_CUT_SIZE;
-            else
-                targetX1 += spacing + WORKSPACE_CUT_SIZE;
+            targetY1 += spacing + WORKSPACE_CUT_SIZE;
         }
 
         if (index === this._dropPlaceholderPos) {
-            const placeholderWidth = this._dropPlaceholder.get_width() + spacing;
-            if (rtl)
-                targetX2 += placeholderWidth;
-            else
-                targetX1 -= placeholderWidth;
+            const placeholderHeight = this._dropPlaceholder.get_height() + spacing;
+            targetY1 -= placeholderHeight;
         }
 
-        return [targetX1, targetX2];
+        return [targetY1, targetY2];
     }
 
-    _withinWorkspace(x, index, rtl) {
+    _withinWorkspace(y, index, rtl) {
         const length = this._thumbnails.length;
         const workspace = this._thumbnails[index];
 
-        let workspaceX1 = workspace.x + WORKSPACE_CUT_SIZE;
-        let workspaceX2 = workspace.x + workspace.width - WORKSPACE_CUT_SIZE;
+        let workspaceY1 = workspace.y + WORKSPACE_CUT_SIZE;
+        let workspaceY2 = workspace.y + workspace.height - WORKSPACE_CUT_SIZE;
 
         if (index === length - 1) {
-            if (rtl)
-                workspaceX1 -= WORKSPACE_CUT_SIZE;
-            else
-                workspaceX2 += WORKSPACE_CUT_SIZE;
+            workspaceY2 += WORKSPACE_CUT_SIZE;
         }
 
-        return x > workspaceX1 && x <= workspaceX2;
+        return y > workspaceY1 && y <= workspaceY2;
     }
 
     // Draggable target interface
@@ -903,13 +895,13 @@ var ThumbnailsBox = GObject.registerClass({
                 const [targetStart, targetEnd] =
                     this._getPlaceholderTarget(index, spacing, rtl);
 
-                if (x > targetStart && x <= targetEnd) {
+                if (y > targetStart && y <= targetEnd) {
                     placeholderPos = index;
                     break;
                 }
             }
 
-            if (this._withinWorkspace(x, index, rtl)) {
+            if (this._withinWorkspace(y, index, rtl)) {
                 this._dropWorkspace = index;
                 break;
             }
@@ -1325,7 +1317,7 @@ var ThumbnailsBox = GObject.registerClass({
     vfunc_allocate(box) {
         this.set_allocation(box);
 
-        let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
+        // let rtl = Clutter.get_default_text_direction() == Clutter.TextDirection.RTL;
 
         if (this._thumbnails.length == 0) // not visible
             return;
@@ -1333,66 +1325,27 @@ var ThumbnailsBox = GObject.registerClass({
         let themeNode = this.get_theme_node();
         box = themeNode.get_content_box(box);
 
+
         const portholeWidth = this._porthole.width;
         const portholeHeight = this._porthole.height;
+        const ratio = portholeHeight / portholeWidth;
+
+        const width = box.get_width();
+        const height = Math.round(width * ratio);
+
+        let vScale = width / portholeWidth;
+        let hScale = height / portholeHeight;
+
         const spacing = themeNode.get_length('spacing');
-
-        const nWorkspaces = this._thumbnails.length;
-
-        // Compute the scale we'll need once everything is updated,
-        // unless we are currently transitioning
-        if (this._expandFraction === 1) {
-            const totalSpacing = (nWorkspaces - 1) * spacing;
-            const availableWidth = (box.get_width() - totalSpacing) / nWorkspaces;
-
-            const hScale = availableWidth / portholeWidth;
-            const vScale = box.get_height() / portholeHeight;
-            const newScale = Math.min(hScale, vScale);
-
-            if (newScale !== this._targetScale) {
-                if (this._targetScale > 0) {
-                    // We don't ease immediately because we need to observe the
-                    // ordering in queueUpdateStates - if workspaces have been
-                    // removed we need to slide them out as the first thing.
-                    this._targetScale = newScale;
-                    this._pendingScaleUpdate = true;
-                } else {
-                    this._targetScale = this._scale = newScale;
-                }
-
-                this._queueUpdateStates();
-            }
-        }
-
-        const ratio = portholeWidth / portholeHeight;
-        const thumbnailFullHeight = Math.round(portholeHeight * this._scale);
-        const thumbnailWidth = Math.round(thumbnailFullHeight * ratio);
-        const thumbnailHeight = thumbnailFullHeight * this._expandFraction;
-        const roundedVScale = thumbnailHeight / portholeHeight;
-
-        // We always request size for MAX_THUMBNAIL_SCALE, distribute
-        // space evently if we use smaller thumbnails
-        const extraWidth =
-            (MAX_THUMBNAIL_SCALE * portholeWidth - thumbnailWidth) * nWorkspaces;
-        box.x1 += Math.round(extraWidth / 2);
-        box.x2 -= Math.round(extraWidth / 2);
 
         let indicatorValue = this._scrollAdjustment.value;
         let indicatorUpperWs = Math.ceil(indicatorValue);
         let indicatorLowerWs = Math.floor(indicatorValue);
 
-        let indicatorLowerX1 = 0;
-        let indicatorLowerX2 = 0;
-        let indicatorUpperX1 = 0;
-        let indicatorUpperX2 = 0;
-
-        let indicatorThemeNode = this._indicator.get_theme_node();
-        let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
-        let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
-        let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
-        let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
-
-        let x = box.x1;
+        let indicatorLowerY1 = 0;
+        let indicatorLowerY2 = 0;
+        let indicatorUpperY1 = 0;
+        let indicatorUpperY2 = 0;
 
         if (this._dropPlaceholderPos == -1) {
             this._dropPlaceholder.allocate_preferred_size(
@@ -1404,87 +1357,208 @@ var ThumbnailsBox = GObject.registerClass({
         }
 
         let childBox = new Clutter.ActorBox();
-
         for (let i = 0; i < this._thumbnails.length; i++) {
-            const thumbnail = this._thumbnails[i];
-            if (i > 0)
-                x += spacing - Math.round(thumbnail.collapse_fraction * spacing);
+            let thumbnail = this._thumbnails[i];
 
-            const y1 = box.y1;
-            const y2 = y1 + thumbnailHeight;
+            let y1 = box.x1 + (height + spacing) * i;
 
+            const [placeholderWidth, placeholderHeight] = this._dropPlaceholder.get_preferred_width(-1);
             if (i === this._dropPlaceholderPos) {
-                const [, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
-                childBox.y1 = y1;
-                childBox.y2 = y2;
-
-                if (rtl) {
-                    childBox.x2 = box.x2 - Math.round(x);
-                    childBox.x1 = box.x2 - Math.round(x + placeholderWidth);
-                } else {
-                    childBox.x1 = Math.round(x);
-                    childBox.x2 = Math.round(x + placeholderWidth);
-                }
-
+                childBox.set_origin(box.x1, y1)
+                childBox.set_size(placeholderWidth, placeholderHeight);
                 this._dropPlaceholder.allocate(childBox);
 
                 Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
                     this._dropPlaceholder.show();
                 });
-                x += placeholderWidth + spacing;
             }
 
-            // We might end up with thumbnailWidth being something like 99.33
-            // pixels. To make this work and not end up with a gap at the end,
-            // we need some thumbnails to be 99 pixels and some 100 pixels width;
-            // we compute an actual scale separately for each thumbnail.
-            const x1 = Math.round(x);
-            const x2 = Math.round(x + thumbnailWidth);
-            const roundedHScale = (x2 - x1) / portholeWidth;
-
-            // Allocating a scaled actor is funny - x1/y1 correspond to the origin
-            // of the actor, but x2/y2 are increased by the *unscaled* size.
-            if (rtl) {
-                childBox.x2 = box.x2 - x1;
-                childBox.x1 = box.x2 - (x1 + thumbnailWidth);
-            } else {
-                childBox.x1 = x1;
-                childBox.x2 = x1 + thumbnailWidth;
+            if(this._dropPlaceholderPos !== -1 && this._dropPlaceholderPos <= i) {
+                y1 += placeholderHeight + spacing;
             }
-            childBox.y1 = y1;
-            childBox.y2 = y1 + thumbnailHeight;
 
-            thumbnail.setScale(roundedHScale, roundedVScale);
+            childBox.set_origin(box.x1, y1);
+            childBox.set_size(width, height);
+            thumbnail.setScale(vScale, hScale);
             thumbnail.allocate(childBox);
 
             if (i === indicatorUpperWs) {
-                indicatorUpperX1 = childBox.x1;
-                indicatorUpperX2 = childBox.x2;
+                indicatorUpperY1 = childBox.y1;
+                indicatorUpperY2 = childBox.y2;
             }
             if (i === indicatorLowerWs) {
-                indicatorLowerX1 = childBox.x1;
-                indicatorLowerX2 = childBox.x2;
+                indicatorLowerY1 = childBox.y1;
+                indicatorLowerY2 = childBox.y2;
             }
-
-            // We round the collapsing portion so that we don't get thumbnails resizing
-            // during an animation due to differences in rounded, but leave the uncollapsed
-            // portion unrounded so that non-animating we end up with the right total
-            x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapse_fraction);
         }
 
-        childBox.y1 = box.y1;
-        childBox.y2 = box.y1 + thumbnailHeight;
+        let indicatorThemeNode = this._indicator.get_theme_node();
+        let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+        let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
+        let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+        let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
-        const indicatorX1 = indicatorLowerX1 +
-            (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
-        const indicatorX2 = indicatorLowerX2 +
-            (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
+        childBox.x1 = box.x1;
+        childBox.x2 = box.x1 + width;
 
-        childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
-        childBox.x2 = indicatorX2 + indicatorRightFullBorder;
-        childBox.y1 -= indicatorTopFullBorder;
-        childBox.y2 += indicatorBottomFullBorder;
+        const indicatorY1 = indicatorLowerY1 +
+            (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
+        const indicatorY2 = indicatorLowerY2 +
+            (indicatorUpperY2 - indicatorLowerY2) * (indicatorValue % 1);
+
+        childBox.y1 = indicatorY1 - indicatorTopFullBorder;
+        childBox.y2 = indicatorY2 + indicatorBottomFullBorder;
+        childBox.x1 -= indicatorLeftFullBorder;
+        childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
+
+        // Compute the scale we'll need once everything is updated,
+        // unless we are currently transitioning
+
+        // if (this._expandFraction === 1) {
+        //     const totalSpacing = (nWorkspaces - 1) * spacing;
+        //     const availableWidth = (box.get_width() - totalSpacing) / nWorkspaces;
+
+        //     const hScale = availableWidth / portholeWidth;
+        //     const vScale = box.get_height() / portholeHeight;
+        //     const newScale = Math.min(hScale, vScale);
+
+        //     if (newScale !== this._targetScale) {
+        //         if (this._targetScale > 0) {
+        //             // We don't ease immediately because we need to observe the
+        //             // ordering in queueUpdateStates - if workspaces have been
+        //             // removed we need to slide them out as the first thing.
+        //             this._targetScale = newScale;
+        //             this._pendingScaleUpdate = true;
+        //         } else {
+        //             this._targetScale = this._scale = newScale;
+        //         }
+
+        //         this._queueUpdateStates();
+        //     }
+        // }
+
+        // const ratio = portholeWidth / portholeHeight;
+        // const thumbnailFullHeight = Math.round(portholeHeight * this._scale);
+        // const thumbnailWidth = Math.round(thumbnailFullHeight * ratio);
+        // const thumbnailHeight = thumbnailFullHeight * this._expandFraction;
+        // const roundedVScale = thumbnailHeight / portholeHeight;
+
+        // // We always request size for MAX_THUMBNAIL_SCALE, distribute
+        // // space evently if we use smaller thumbnails
+        // const extraWidth =
+        //     (MAX_THUMBNAIL_SCALE * portholeWidth - thumbnailWidth) * nWorkspaces;
+        // box.x1 += Math.round(extraWidth / 2);
+        // box.x2 -= Math.round(extraWidth / 2);
+
+        // let indicatorValue = this._scrollAdjustment.value;
+        // let indicatorUpperWs = Math.ceil(indicatorValue);
+        // let indicatorLowerWs = Math.floor(indicatorValue);
+
+        // let indicatorLowerX1 = 0;
+        // let indicatorLowerX2 = 0;
+        // let indicatorUpperX1 = 0;
+        // let indicatorUpperX2 = 0;
+
+        // let indicatorThemeNode = this._indicator.get_theme_node();
+        // let indicatorTopFullBorder = indicatorThemeNode.get_padding(St.Side.TOP) + indicatorThemeNode.get_border_width(St.Side.TOP);
+        // let indicatorBottomFullBorder = indicatorThemeNode.get_padding(St.Side.BOTTOM) + indicatorThemeNode.get_border_width(St.Side.BOTTOM);
+        // let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
+        // let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
+
+        // let x = box.x1;
+
+        // if (this._dropPlaceholderPos == -1) {
+        //     this._dropPlaceholder.allocate_preferred_size(
+        //         ...this._dropPlaceholder.get_position());
+
+        //     Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+        //         this._dropPlaceholder.hide();
+        //     });
+        // }
+
+        // let childBox = new Clutter.ActorBox();
+
+        // for (let i = 0; i < this._thumbnails.length; i++) {
+        //     const thumbnail = this._thumbnails[i];
+        //     if (i > 0)
+        //         x += spacing - Math.round(thumbnail.collapse_fraction * spacing);
+
+        //     const y1 = box.y1;
+        //     const y2 = y1 + thumbnailHeight;
+
+        //     if (i === this._dropPlaceholderPos) {
+        //         const [, placeholderWidth] = this._dropPlaceholder.get_preferred_width(-1);
+        //         childBox.y1 = y1;
+        //         childBox.y2 = y2;
+
+        //         if (rtl) {
+        //             childBox.x2 = box.x2 - Math.round(x);
+        //             childBox.x1 = box.x2 - Math.round(x + placeholderWidth);
+        //         } else {
+        //             childBox.x1 = Math.round(x);
+        //             childBox.x2 = Math.round(x + placeholderWidth);
+        //         }
+
+        //         this._dropPlaceholder.allocate(childBox);
+
+        //         Meta.later_add(Meta.LaterType.BEFORE_REDRAW, () => {
+        //             this._dropPlaceholder.show();
+        //         });
+        //         x += placeholderWidth + spacing;
+        //     }
+
+        //     // We might end up with thumbnailWidth being something like 99.33
+        //     // pixels. To make this work and not end up with a gap at the end,
+        //     // we need some thumbnails to be 99 pixels and some 100 pixels width;
+        //     // we compute an actual scale separately for each thumbnail.
+        //     const x1 = Math.round(x);
+        //     const x2 = Math.round(x + thumbnailWidth);
+        //     const roundedHScale = (x2 - x1) / portholeWidth;
+
+        //     // Allocating a scaled actor is funny - x1/y1 correspond to the origin
+        //     // of the actor, but x2/y2 are increased by the *unscaled* size.
+        //     if (rtl) {
+        //         childBox.x2 = box.x2 - x1;
+        //         childBox.x1 = box.x2 - (x1 + thumbnailWidth);
+        //     } else {
+        //         childBox.x1 = x1;
+        //         childBox.x2 = x1 + thumbnailWidth;
+        //     }
+        //     childBox.y1 = y1;
+        //     childBox.y2 = y1 + thumbnailHeight;
+
+        //     thumbnail.setScale(roundedHScale, roundedVScale);
+        //     thumbnail.allocate(childBox);
+
+        //     if (i === indicatorUpperWs) {
+        //         indicatorUpperX1 = childBox.x1;
+        //         indicatorUpperX2 = childBox.x2;
+        //     }
+        //     if (i === indicatorLowerWs) {
+        //         indicatorLowerX1 = childBox.x1;
+        //         indicatorLowerX2 = childBox.x2;
+        //     }
+
+        //     // We round the collapsing portion so that we don't get thumbnails resizing
+        //     // during an animation due to differences in rounded, but leave the uncollapsed
+        //     // portion unrounded so that non-animating we end up with the right total
+        //     x += thumbnailWidth - Math.round(thumbnailWidth * thumbnail.collapse_fraction);
+        // }
+
+        // childBox.y1 = box.y1;
+        // childBox.y2 = box.y1 + thumbnailHeight;
+
+        // const indicatorX1 = indicatorLowerX1 +
+        //     (indicatorUpperX1 - indicatorLowerX1) * (indicatorValue % 1);
+        // const indicatorX2 = indicatorLowerX2 +
+        //     (indicatorUpperX2 - indicatorLowerX2) * (indicatorValue % 1);
+
+        // childBox.x1 = indicatorX1 - indicatorLeftFullBorder;
+        // childBox.x2 = indicatorX2 + indicatorRightFullBorder;
+        // childBox.y1 -= indicatorTopFullBorder;
+        // childBox.y2 += indicatorBottomFullBorder;
+        // this._indicator.allocate(childBox);
     }
 
     get shouldShow() {

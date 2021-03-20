@@ -60,11 +60,11 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         case ControlsState.WINDOW_PICKER:
         case ControlsState.APP_GRID:
             workspaceBox.set_origin(
-                leftOffset,
+                leftOffset + spacing,
                 searchHeight + spacing * expandFraction);
             workspaceBox.set_size(
                 width - leftOffset - rightOffset,
-                height - searchHeight - spacing - thumbnailsHeight - spacing);
+                height - searchHeight - spacing * expandFraction);
             break;
         }
 
@@ -111,6 +111,9 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
     vfunc_allocate(container, box) {
         const childBox = new Clutter.ActorBox();
 
+        let leftOffset = 200; //TODO: fixme;
+        let rightOffset = 200; //TODO: fixme;
+
         const { spacing } = this;
 
         const [width, height] = box.get_size();
@@ -118,28 +121,19 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
 
         // Search entry
         const [searchHeight] = this._searchEntry.get_preferred_height(width);
-        childBox.set_origin(0, 0);
-        childBox.set_size(width, searchHeight);
+        childBox.set_origin(leftOffset, 0);
+        childBox.set_size(width - leftOffset - rightOffset, searchHeight);
         this._searchEntry.allocate(childBox);
 
         availableHeight -= searchHeight + spacing;
 
         // Workspace Thumbnails
-        let thumbnailsHeight = 0;
+        let thumbnailsHeight = height;
         if (this._workspacesThumbnails.visible) {
-            const { expandFraction } = this._workspacesThumbnails;
-            [thumbnailsHeight] =
-                this._workspacesThumbnails.get_preferred_height(width);
-            thumbnailsHeight = Math.min(
-                thumbnailsHeight * expandFraction,
-                height * WorkspaceThumbnail.MAX_THUMBNAIL_SCALE);
-            childBox.set_origin(box.x2, searchHeight + spacing);
-            childBox.set_size(width, thumbnailsHeight);
+            childBox.set_origin(width - rightOffset, 0);
+            childBox.set_size(rightOffset, height);
             this._workspacesThumbnails.allocate(childBox);
         }
-
-        let leftOffset = 200; //TODO: fixme;
-        let rightOffset = 200; //TODO: fixme;
 
         // Workspaces
         let params = [box, searchHeight, leftOffset, rightOffset, thumbnailsHeight];
