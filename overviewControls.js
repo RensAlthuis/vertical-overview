@@ -44,7 +44,7 @@ class ControlsManagerLayout extends Clutter.BoxLayout {
         this._cachedWorkspaceBoxes = new Map();
         this._postAllocationCallbacks = [];
 
-        stateAdjustment.connect('notify::value', () => this.layout_changed());
+        this._stateAdjustID = stateAdjustment.connect('notify::value', () => this.layout_changed());
     }
 
     _computeWorkspacesBoxForState(state, box, startY, searchHeight, leftOffset, rightOffset) {
@@ -368,19 +368,6 @@ class ControlsManager extends St.Widget {
 
         this._a11ySettings = new Gio.Settings({ schema_id: A11Y_SCHEMA });
 
-        // global.display.connect('overlay-key', () => {
-        //     if (this._a11ySettings.get_boolean('stickykeys-enable'))
-        //         return;
-
-        //     const { initialState, finalState, transitioning } =
-        //         this._stateAdjustment.getStateTransitionParams();
-
-        //     if (transitioning && finalState > initialState)
-        //         this._shiftState(Meta.MotionDirection.UP);
-        //     else
-        //         Main.overview.toggle();
-        // });
-
         Main.wm.addKeybinding(
             'toggle-application-view',
             new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),
@@ -589,7 +576,20 @@ class ControlsManager extends St.Widget {
     }
 
     _onDestroy() {
+        Main.ctrlAltTabManager.removeGroup(this.appDisplay);
+        Main.ctrlAltTabManager.removeGroup(this._workspacesDisplay);
+
+        this._thumbnailsBox.run_dispose();
+        this._appDisplay.run_dispose();
+        this._searchController.run_dispose();
+        this._searchEntryBin.run_dispose();
+        this._workspacesDisplay.run_dispose();
+        this._workspaceAdjustment.run_dispose();
+        this._stateAdjustment.run_dispose();
         global.workspace_manager.disconnect(this._nWorkspacesNotifyId);
+        Main.wm.removeKeybinding('toggle-application-view');
+        Main.wm.removeKeybinding('shift-overview-up');
+        Main.wm.removeKeybinding('shift-overview-down');
     }
 
     _updateAdjustment() {

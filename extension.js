@@ -32,12 +32,11 @@ function enable() {
     global._log = global.log;
     global.log = function (content) { if (_DEBUG_) global._log(content); };
 
+    clear_keys();
     overviewControls = Main.overview._overview._controls;
     global.window_manager.disconnect(overviewControls._workspacesDisplay._switchWorkspaceId);
-
-    clear_keys();
-
     Main.overview._overview.remove_child(Main.overview._overview._controls);
+
     Main.overview._overview._controls = new VerticalOverviewControls.ControlsManager();
     Main.overview._overview.add_child(Main.overview._overview._controls);
 
@@ -46,15 +45,17 @@ function enable() {
 
 function disable() {
 
-    clear_keys();
-    Main.overview._overview.remove_child(Main.overview._overview._controls);
-    Main.overview._overview._controls.run_dispose();
-    Main.overview._overview._controls = overviewControls;
-    Main.overview._overview.add_child(overviewControls);
+    let vOverview = Main.overview._overview._controls;
+    Main.overview._overview.remove_child(vOverview);
+    vOverview.run_dispose();
+    delete vOverview;
+
     overviewControls._workspacesDisplay._switchWorkspaceId = 
             global.window_manager.connect('switch-workspace',
-                overviewControls._workspacesDisplay._activeWorkspaceChanged.bind(overviewControls._workspacesDisplays));
-    bind_keys(overviewControls);
+                overviewControls._workspacesDisplay._activeWorkspaceChanged.bind(overviewControls._workspacesDisplay));
+    rebind_keys(overviewControls);
+    Main.overview._overview._controls = overviewControls;
+    Main.overview._overview.add_child(overviewControls);
 
     global.log = global._log;
     global._log = null;
@@ -67,7 +68,7 @@ function clear_keys() {
     Main.wm.removeKeybinding('shift-overview-down');
 }
 
-function bind_keys(self) {
+function rebind_keys(self) {
     Main.wm.addKeybinding(
         'toggle-application-view',
         new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),

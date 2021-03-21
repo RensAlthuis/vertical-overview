@@ -41,6 +41,8 @@ var SearchController = GObject.registerClass({
             visible: false,
         });
 
+        this.connectIDs = {};
+
         this._activePage = null;
 
         this._searchActive = false;
@@ -65,7 +67,8 @@ var SearchController = GObject.registerClass({
             this._searchResults.popupMenuDefault();
         });
         this._entry.connect('notify::mapped', this._onMapped.bind(this));
-        global.stage.connect('notify::key-focus', this._onStageKeyFocusChanged.bind(this));
+
+        this.connectIDs['global.stage.notify::key-focus'] = global.stage.connect('notify::key-focus', this._onStageKeyFocusChanged.bind(this));
 
         this._entry.set_primary_icon(new St.Icon({
             style_class: 'search-entry-icon',
@@ -95,16 +98,18 @@ var SearchController = GObject.registerClass({
         global.focus_manager.add_group(this._searchResults);
 
         this._stageKeyPressId = 0;
-        Main.overview.connect('showing', () => {
+        this.connectIDs['main.overview.showing'] = Main.overview.connect('showing', () => {
             this._stageKeyPressId =
                 global.stage.connect('key-press-event', this._onStageKeyPress.bind(this));
         });
-        Main.overview.connect('hiding', () => {
+        this.connectIDs['main.overview.hiding'] = Main.overview.connect('hiding', () => {
             if (this._stageKeyPressId !== 0) {
                 global.stage.disconnect(this._stageKeyPressId);
                 this._stageKeyPressId = 0;
             }
         });
+
+        this.connect('destroy', this._onDestroy.bind(this));
     }
 
     prepareToEnterOverview() {
@@ -116,6 +121,24 @@ var SearchController = GObject.registerClass({
         this.reset();
 
         super.vfunc_unmap();
+    }
+
+    _onDestroy() {
+        global.stage.disconnect(this.connectIDs['global.stage.notify::key-focus']);
+        global.focus_manager.remove_group(this._searchResults);
+
+        if(this._stageKeyPressId > 0) {
+            global.stage.disconnect(this._stageKeyPressId);
+        }
+        if(this._capturedEventId > 0) {
+            global.stage.disconnect(this._capturedEventId);
+        }
+        if(this._iconClickedId > 0) {
+            global.stage.disconnect(this._iconClickedId);
+        }
+
+        Main.overview.disconnect(this.connectIDs['main.overview.showing']);
+        Main.overview.disconnect(this.connectIDs['main.overview.hiding']);
     }
 
     _setSearchActive(searchActive) {
