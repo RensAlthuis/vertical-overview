@@ -4,23 +4,28 @@
 const { Clutter, Gio, GObject, Meta, Shell, St } = imports.gi;
 
 const AppDisplay = imports.ui.appDisplay;
+const Dash = imports.ui.dash;
 const Layout = imports.ui.layout;
 const Main = imports.ui.main;
 const Overview = imports.ui.overview;
+const SearchController = imports.ui.searchController;
 const Util = imports.misc.util;
 const WindowManager = imports.ui.windowManager;
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+const WorkspacesView = imports.ui.workspacesView;
 
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const SearchController = Self.imports.searchController;
-const WorkspacesView = Self.imports.workspacesView;
-const WorkspaceThumbnail = Self.imports.workspaceThumbnail
+const SMALL_WORKSPACE_RATIO = 0.15;
+const DASH_MAX_HEIGHT_RATIO = 0.15;
+
+const A11Y_SCHEMA = 'org.gnome.desktop.a11y.keyboard';
+
+var SIDE_CONTROLS_ANIMATION_TIME = Overview.ANIMATION_TIME;
 
 var ControlsState = {
     HIDDEN: 0,
     WINDOW_PICKER: 1,
     APP_GRID: 2,
 };
-
 // ControlsManagerLayout
 
 var ControlsManagerLayout = {
@@ -222,9 +227,10 @@ var ControlsManager = {
     },
 
     _toggleAppsPage: function() {
+        global.log(":LSDKFJLSDKFJLSDKFJ");
         if (Main.overview.visible) {
-            const checked = this.showAppsGrid;
-            this.showAppsGrid = !checked;
+            const checked = this.dash.showAppsButton.checked;
+            this.dash.showAppsButton.checked = !checked;
             const value = checked ? ControlsState.WINDOW_PICKER : ControlsState.APP_GRID;
             this._stateAdjustment.remove_transition('value');
             this._stateAdjustment.ease(value, {
@@ -232,22 +238,51 @@ var ControlsManager = {
                 mode: Clutter.AnimationMode.EASE_OUT_QUAD
             });
 
-            if(!this.showAppsGrid) {
+            if(!this.dash.showAppsButton.checked) {
                 this._workspacesDisplay.setPrimaryWorkspaceVisible(true);
             }
         } else {
             Main.overview.show(ControlsState.APP_GRID);
-            this.showAppsGrid = true;
+            this.dash.showAppsButton.checked = true;
         }
 
         this._workspacesDisplay.ease({
-            opacity: this.showAppsGrid ? 0 : 255,
+            opacity: this.dash.showAppsButton.checked ? 0 : 255,
             duration: SIDE_CONTROLS_ANIMATION_TIME,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => {
-                this._workspacesDisplay.reactive = !this.showAppsGrid;
-                this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.showAppsGrid);
+                this._workspacesDisplay.reactive = !this.dash.showAppsButton.checked;
+                this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.dash.showAppsButton.checked);
             },
         });
+    }, 
+
+    animateToOverview: function(state, callback) {
+        this._ignoreShowAppsButtonToggle = true;
+
+        this._searchController.prepareToEnterOverview();
+        this._workspacesDisplay.prepareToEnterOverview();
+        if (!this._workspacesDisplay.activeWorkspaceHasMaximizedWindows())
+            Main.overview.fadeOutDesktop();
+
+        this._stateAdjustment.value = ControlsState.HIDDEN;
+
+        this._workspacesDisplay.opacity = 255;
+        this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.dash.showAppsButton.checked);
+        this._workspacesDisplay.reactive = !this.dash.showAppsButton.checked;
+
+        this._stateAdjustment.ease(state, {
+            duration: Overview.ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: () => {
+                if (callback)
+                    callback();
+            },
+        });
+
+        this.dash.showAppsButton.checked =
+            state === ControlsState.APP_GRID;
+
+        this._ignoreShowAppsButtonToggle = false;
     }
 }

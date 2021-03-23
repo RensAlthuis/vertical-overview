@@ -526,7 +526,6 @@ var Overview = class {
     //
     // Animates the overview visible and grabs mouse and keyboard input
     show(state = OverviewControls.ControlsState.WINDOW_PICKER) {
-        global.log("hello");
         if (state === OverviewControls.ControlsState.HIDDEN)
             throw new Error('Invalid state, use hide() to hide');
 
