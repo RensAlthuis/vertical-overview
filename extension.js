@@ -19,7 +19,7 @@ function init() {
 }
 
 function enable() {
-    global.log("[VERTICAL-OVERVIEW] starting overrides");
+    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
     GSFunctions['ControlsManagerLayout'] = overrideProto(OverviewControls.ControlsManagerLayout.prototype, OverviewControlsOverrides.ControlsManagerLayout);
     GSFunctions['ControlsManager'] = overrideProto(OverviewControls.ControlsManager.prototype, OverviewControlsOverrides.ControlsManager);
     GSFunctions['WorkspacesView'] = overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverrides.WorkspacesView);
@@ -28,11 +28,11 @@ function enable() {
     Main.overview._overview._controls._workspacesDisplay.set_clip_to_allocation(true);
     Main.overview._overview._controls.dash.hide();
 
-    global.log("[VERTICAL_OVERVIEW] enabled");
+    if (__DEBUG__) global.log("[VERTICAL_OVERVIEW] enabled");
 }
 
 function disable() {
-    global.log("[VERTICAL-OVERVIEW] resetting overrides");
+    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] resetting overrides");
     overrideProto(OverviewControls.ControlsManagerLayout.prototype, GSFunctions['ControlsManagerLayout']);
     overrideProto(OverviewControls.ControlsManager.prototype, GSFunctions['ControlsManager']);
     overrideProto(WorkspacesView.WorkspacesView.prototype, GSFunctions['WorkspacesView']);
@@ -41,7 +41,7 @@ function disable() {
     Main.overview._overview._controls._workspacesDisplay.set_clip_to_allocation(false);
     Main.overview._overview._controls.dash.show();
 
-    global.log("[VERTICAL-OVERVIEW] disabled");
+    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] disabled");
 }
 
 function hookVfunc(proto, symbol, func) {
