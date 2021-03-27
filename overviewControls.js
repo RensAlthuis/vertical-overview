@@ -69,8 +69,7 @@ var ControlsManagerLayout = {
         }
 
         appDisplayBox.set_size(width,
-            height -
-            searchHeight - spacing
+            height - searchHeight - spacing - spacing
         );
 
         return appDisplayBox;
@@ -127,6 +126,14 @@ var ControlsManagerLayout = {
         }
 
         this._workspacesDisplay.allocate(workspacesBox);
+        global.log(transitionParams.progress);
+        if(transitionParams.transitioning) {
+            if(transitionParams.currentState > ControlsState.WINDOW_PICKER && transitionParams.currentState < ControlsState.APP_GRID) {
+                this._workspacesDisplay.opacity = 255 - (255 * (transitionParams.currentState - 1));
+            }
+        } else {
+            this._workspacesDisplay.opacity = transitionParams.currentState === ControlsState.APP_GRID || this._searchController.searchActive ? 0 : 255;
+        }
 
         // App grid
         if (this._appDisplay.visible) {
@@ -255,7 +262,7 @@ var ControlsManager = {
                 this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.dash.showAppsButton.checked);
             },
         });
-    }, 
+    },
 
     animateToOverview: function(state, callback) {
         this._ignoreShowAppsButtonToggle = true;
