@@ -15,5 +15,4 @@ logout/log in
 $ gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
 
-*Animations are a lot smoother than this, but it was recorded on a VM on an aging computer...*
-![example](https://github.com/RensAlthuis/vertical-overview/blob/master/example.gif?raw=true)
+![example video](https://github.com/RensAlthuis/vertical-overview/blob/master/vertical-overview.mp4)
