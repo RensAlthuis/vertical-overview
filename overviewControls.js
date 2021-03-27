@@ -126,7 +126,6 @@ var ControlsManagerLayout = {
         }
 
         this._workspacesDisplay.allocate(workspacesBox);
-        global.log(transitionParams.progress);
         if(transitionParams.transitioning) {
             if(transitionParams.currentState > ControlsState.WINDOW_PICKER && transitionParams.currentState < ControlsState.APP_GRID) {
                 this._workspacesDisplay.opacity = 255 - (255 * (transitionParams.currentState - 1));
@@ -234,7 +233,6 @@ var ControlsManager = {
     },
 
     _toggleAppsPage: function() {
-        global.log(":LSDKFJLSDKFJLSDKFJ");
         if (Main.overview.visible) {
             const checked = this.dash.showAppsButton.checked;
             this.dash.showAppsButton.checked = !checked;
