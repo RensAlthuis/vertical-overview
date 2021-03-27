@@ -15,4 +15,5 @@ logout/log in
 $ gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
 
-![example video](https://github.com/RensAlthuis/vertical-overview/blob/master/vertical-overview.mp4)
+
+![Example video](https://user-images.githubusercontent.com/12956267/112723092-2c915180-8f0d-11eb-802a-9a624a21791a.mp4)
