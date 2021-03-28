@@ -12,13 +12,11 @@ const DND = imports.ui.dnd;
 const LayoutManager = imports.ui.layout;
 const Main = imports.ui.main;
 const MessageTray = imports.ui.messageTray;
+const OverviewControls = imports.ui.overviewControls;
 const Params = imports.misc.params;
 const SwipeTracker = imports.ui.swipeTracker;
 const WindowManager = imports.ui.windowManager;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
-
-const Self = imports.misc.extensionUtils.getCurrentExtension();
-const OverviewControls = Self.imports.overviewControls;
 
 var DND_WINDOW_SWITCH_TIMEOUT = 750;
 
@@ -86,16 +84,6 @@ class OverviewActor extends St.BoxLayout {
         });
 
         this.add_constraint(new LayoutManager.MonitorConstraint({ primary: true }));
-
-        // Add a clone of the panel to the overview so spacing and such is
-        // automatic
-        let panelGhost = new St.Bin({
-            child: new Clutter.Clone({ source: Main.panel }),
-            reactive: false,
-            opacity: 0,
-        });
-        this.add_actor(panelGhost);
-
 
         this._controls = new OverviewControls.ControlsManager();
         this.add_child(this._controls);
@@ -241,6 +229,7 @@ var Overview = class {
             this.toggle.bind(this));
 
         const swipeTracker = new SwipeTracker.SwipeTracker(global.stage,
+            Clutter.Orientation.VERTICAL,
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
             { allowDrag: false, allowScroll: false });
         swipeTracker.orientation = Clutter.Orientation.VERTICAL;
@@ -649,7 +638,7 @@ var Overview = class {
     }
 
     showApps() {
-        this._show(OverviewControls.ControlsState.APP_GRID);
+        this.show(OverviewControls.ControlsState.APP_GRID);
     }
 
     runStartupAnimation(callback) {

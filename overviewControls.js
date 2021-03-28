@@ -69,7 +69,7 @@ var ControlsManagerLayout = {
         }
 
         appDisplayBox.set_size(width,
-            height - searchHeight - spacing - spacing
+            height - startY - searchHeight - spacing
         );
 
         return appDisplayBox;
@@ -126,13 +126,7 @@ var ControlsManagerLayout = {
         }
 
         this._workspacesDisplay.allocate(workspacesBox);
-        if(transitionParams.transitioning) {
-            if(transitionParams.currentState > ControlsState.WINDOW_PICKER && transitionParams.currentState < ControlsState.APP_GRID) {
-                this._workspacesDisplay.opacity = 255 - (255 * (transitionParams.currentState - 1));
-            }
-        } else {
-            this._workspacesDisplay.opacity = transitionParams.currentState === ControlsState.APP_GRID || this._searchController.searchActive ? 0 : 255;
-        }
+
 
         // App grid
         if (this._appDisplay.visible) {
@@ -180,20 +174,8 @@ var ControlsManager = {
             this._stateAdjustment.getStateTransitionParams();
 
         const paramsForState = s => {
-            let opacity, scale;
-            switch (s) {
-            case ControlsState.HIDDEN:
-            case ControlsState.WINDOW_PICKER:
-            case ControlsState.APP_GRID:
-                opacity = 255;
-                scale = 1;
-                break;
-            default:
-                opacity = 255;
-                scale = 1;
-                break;
-            }
-
+            opacity = 255;
+            scale = 1;
             return { opacity, scale } ;
         };
 
@@ -221,7 +203,7 @@ var ControlsManager = {
             opacity: searchActive ? 0 : opacity,
             duration: animate ? SIDE_CONTROLS_ANIMATION_TIME : 0,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => (this._thumbnailsBox.visible = thumbnailsBoxVisible),
+            onComplete: () => (this._thumbnailsBox.visible = thumbnailsBoxVisible)
         };
 
         if (!searchActive) {
@@ -230,36 +212,6 @@ var ControlsManager = {
         }
 
         this._thumbnailsBox.ease(params);
-    },
-
-    _toggleAppsPage: function() {
-        if (Main.overview.visible) {
-            const checked = this.dash.showAppsButton.checked;
-            this.dash.showAppsButton.checked = !checked;
-            const value = checked ? ControlsState.WINDOW_PICKER : ControlsState.APP_GRID;
-            this._stateAdjustment.remove_transition('value');
-            this._stateAdjustment.ease(value, {
-                duration: SIDE_CONTROLS_ANIMATION_TIME,
-                mode: Clutter.AnimationMode.EASE_OUT_QUAD
-            });
-
-            if(!this.dash.showAppsButton.checked) {
-                this._workspacesDisplay.setPrimaryWorkspaceVisible(true);
-            }
-        } else {
-            Main.overview.show(ControlsState.APP_GRID);
-            this.dash.showAppsButton.checked = true;
-        }
-
-        this._workspacesDisplay.ease({
-            opacity: this.dash.showAppsButton.checked ? 0 : 255,
-            duration: SIDE_CONTROLS_ANIMATION_TIME,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => {
-                this._workspacesDisplay.reactive = !this.dash.showAppsButton.checked;
-                this._workspacesDisplay.setPrimaryWorkspaceVisible(!this.dash.showAppsButton.checked);
-            },
-        });
     },
 
     animateToOverview: function(state, callback) {
@@ -290,4 +242,53 @@ var ControlsManager = {
 
         this._ignoreShowAppsButtonToggle = false;
     }
+}
+
+function _updateWorkspacesDisplay() {
+    const { initialState, finalState, progress } = this._stateAdjustment.getStateTransitionParams();
+    const { searchActive } = this._searchController;
+
+    //TODO: fix scaling (or just remove it)
+    const paramsForState = s => {
+        let opacity, scale;
+        switch (s) {
+            case ControlsState.HIDDEN:
+            case ControlsState.WINDOW_PICKER:
+                opacity = 255;
+                scale = 1;
+                break;
+            case ControlsState.APP_GRID:
+                opacity = 0;
+                scale = 0.5;
+                break;
+            default:
+                opacity = 255;
+                scale = 1;
+                break;
+        }
+        return { opacity, scale };
+    };
+
+    let initialParams = paramsForState(initialState);
+    let finalParams = paramsForState(finalState);
+
+    let opacity = Util.lerp(initialParams.opacity, finalParams.opacity, progress)
+    let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
+
+    let workspacesDisplayVisible =
+            finalState == ControlsState.WINDOW_PICKER ||
+            (initialState == ControlsState.WINDOW_PICKER && progress != 1);
+
+    let params = {
+        opacity: !searchActive? opacity : 0,
+        scale: scale,
+        duration: 0,
+        mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        onComplete: () => {
+            this._workspacesDisplay.reactive = workspacesDisplayVisible;
+            this._workspacesDisplay.setPrimaryWorkspaceVisible(workspacesDisplayVisible);
+        }
+    }
+
+    this._workspacesDisplay.ease(params);
 }

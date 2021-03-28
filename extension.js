@@ -108,6 +108,9 @@ function enable() {
     global.vertical_overview.GSFunctions['WorkspacesView'] = overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverrides.WorkspacesView);
     global.vertical_overview.GSFunctions['ThumbnailsBox'] = overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, WorkspaceThumbnailOverrides.ThumbnailsBox);
 
+    let controlsManager = Main.overview._overview._controls;
+    global.vertical_overview._updateID = controlsManager._stateAdjustment.connect("notify::value", OverviewControlsOverrides._updateWorkspacesDisplay.bind(controlsManager));
+
     Main.overview._overview._controls._workspacesDisplay.set_clip_to_allocation(true);
     Main.overview._overview._controls.dash.hide();
 
@@ -129,6 +132,9 @@ function disable() {
     overrideProto(OverviewControls.ControlsManager.prototype, global.vertical_overview.GSFunctions['ControlsManager']);
     overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
     overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
+
+    let controlsManager = Main.overview._overview._controls;
+    controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
 
     Main.overview._overview._controls._workspacesDisplay.set_clip_to_allocation(false);
     Main.overview._overview._controls.dash.show();
