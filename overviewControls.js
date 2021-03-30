@@ -99,10 +99,19 @@ var ControlsManagerLayout = {
 
         availableHeight -= searchHeight + spacing;
 
+        // Dash
+        let dashHeight = (height - startY) * this.dashMaxHeightScale;
+        this._dash.setMaxSize(leftOffset, dashHeight);
+        let [, maxDashWidth] = this._dash.get_preferred_width(height - startY);
+        dashWidth = Math.min(maxDashWidth, leftOffset);
+        childBox.set_origin(0, startY);
+        childBox.set_size(dashWidth, (height - startY));
+        this._dash.allocate(childBox);
+
         // Workspace Thumbnails
         if (this._workspacesThumbnails.visible) {
             childBox.set_origin(width - rightOffset, startY);
-            childBox.set_size(rightOffset, height);
+            childBox.set_size(rightOffset, height - startY);
             this._workspacesThumbnails.allocate(childBox);
         }
 
@@ -276,8 +285,9 @@ function _updateWorkspacesDisplay() {
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
     let workspacesDisplayVisible =
-            finalState == ControlsState.WINDOW_PICKER ||
-            (initialState == ControlsState.WINDOW_PICKER && progress != 1);
+        (finalState == ControlsState.WINDOW_PICKER ||
+            (initialState == ControlsState.WINDOW_PICKER && progress != 1)) &&
+        !searchActive;
 
     let params = {
         opacity: !searchActive? opacity : 0,

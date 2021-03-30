@@ -11,5 +11,10 @@
             <summary>distance between right side of the monitor and the workspaces display</summary>
             <description></description>
         </key>
+        <key type="i" name="dash-max-height">
+            <default>80</default>
+            <summary>Maximum height of the dash</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>

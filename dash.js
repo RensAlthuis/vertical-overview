@@ -1,0 +1,442 @@
+// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
+/* exported Dash */
+
+const { Clutter, GLib, GObject,
+    Graphene, Meta, Shell, St } = imports.gi;
+
+const AppDisplay = imports.ui.appDisplay;
+const AppFavorites = imports.ui.appFavorites;
+const DND = imports.ui.dnd;
+const IconGrid = imports.ui.iconGrid;
+const Main = imports.ui.main;
+const Overview = imports.ui.overview;
+const { DashIcon, DashItemContainer, getAppFromSource, DragPlaceholderItem } = imports.ui.dash;
+
+var DASH_ANIMATION_TIME = 200;
+var DASH_ITEM_LABEL_SHOW_TIME = 150;
+var DASH_ITEM_LABEL_HIDE_TIME = 100;
+var DASH_ITEM_HOVER_TIMEOUT = 300;
+
+const baseIconSizes = [16, 22, 24, 32, 48, 64];
+
+function override() {
+    let dash = Main.overview._overview._controls.dash;
+    dash._box.layout_manager.orientation = Clutter.Orientation.VERTICAL;
+    dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
+    dash._dashContainer.y_expand = false;
+    dash._dashContainer.x_expand = true;
+    dash._dashContainer.set_child_at_index(dash._dashContainer.first_child, 1) //move showAppbutton on top;
+    if (dash._separator) {
+        dash._separator.destroy();
+        dash._separator = null;
+    }
+    dash._separator = new St.Widget({
+        style_class: 'dash-separator',
+        y_align: Clutter.ActorAlign.END,
+        x_align: Clutter.ActorAlign.CENTER,
+        y_expand: false,
+        width: dash.iconSize,
+        margin_top: 14,
+        height: 1,
+    });
+    dash._box.add_child(dash._separator);
+
+    let sizerBox = dash._background.get_children()[0];
+    sizerBox.clear_constraints();
+    sizerBox.add_constraint(new Clutter.BindConstraint({
+        source: dash._showAppsIcon.icon,
+        coordinate: Clutter.BindCoordinate.WIDTH,
+    }));
+    sizerBox.add_constraint(new Clutter.BindConstraint({
+        source: dash._dashContainer,
+        coordinate: Clutter.BindCoordinate.HEIGHT,
+    }));
+}
+
+function reset() {
+    let controlsManager = Main.overview._overview._controls;
+    controlsManager.dash._box.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
+    controlsManager.dash._dashContainer.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
+    controlsManager.dash._dashContainer.y_expand = true;
+    controlsManager.dash._dashContainer.x_expand = false;
+
+    let sizerBox = controlsManager.dash._background.get_children()[0];
+    sizerBox.clear_constraints();
+    sizerBox.add_constraint(new Clutter.BindConstraint({
+        source: controlsManager.dash._showAppsIcon.icon,
+        coordinate: Clutter.BindCoordinate.HEIGHT,
+    }));
+    sizerBox.add_constraint(new Clutter.BindConstraint({
+        source: controlsManager.dash._dashContainer,
+        coordinate: Clutter.BindCoordinate.WIDTH,
+    }));
+}
+
+var Dash = {
+    handleDragOver: function (source, actor, _x, y, _time) {
+        let app = getAppFromSource(source);
+
+        // Don't allow favoriting of transient apps
+        if (app == null || app.is_window_backed())
+            return DND.DragMotionResult.NO_DROP;
+
+        if (!global.settings.is_writable('favorite-apps'))
+            return DND.DragMotionResult.NO_DROP;
+
+        let favorites = AppFavorites.getAppFavorites().getFavorites();
+        let numFavorites = favorites.length;
+
+        let favPos = favorites.indexOf(app);
+
+        let children = this._box.get_children();
+        let numChildren = children.length;
+        let boxHeight = this._box.height;
+
+        // Keep the placeholder out of the index calculation; assuming that
+        // the remove target has the same size as "normal" items, we don't
+        // need to do the same adjustment there.
+        if (this._dragPlaceholder) {
+            boxHeight -= this._dragPlaceholder.height;
+            numChildren--;
+        }
+
+        // Same with the separator
+        if (this._separator) {
+            boxHeight -= this._separator.height;
+            numChildren--;
+        }
+
+        let pos;
+        if (!this._emptyDropTarget)
+            pos = Math.floor(y * numChildren / boxHeight);
+        else
+            pos = 0; // always insert at the top when dash is empty
+
+        // Put the placeholder after the last favorite if we are not
+        // in the favorites zone
+        if (pos > numFavorites)
+            pos = numFavorites;
+
+        if (pos !== this._dragPlaceholderPos && this._animatingPlaceholdersCount === 0) {
+            this._dragPlaceholderPos = pos;
+
+            // Don't allow positioning before or after self
+            if (favPos != -1 && (pos == favPos || pos == favPos + 1)) {
+                this._clearDragPlaceholder();
+                return DND.DragMotionResult.CONTINUE;
+            }
+
+            // If the placeholder already exists, we just move
+            // it, but if we are adding it, expand its size in
+            // an animation
+            let fadeIn;
+            if (this._dragPlaceholder) {
+                this._dragPlaceholder.destroy();
+                fadeIn = false;
+            } else {
+                fadeIn = true;
+            }
+
+            this._dragPlaceholder = new DragPlaceholderItem();
+            this._dragPlaceholder.child.set_width(this.iconSize);
+            this._dragPlaceholder.child.set_height(this.iconSize / 2);
+            this._box.insert_child_at_index(this._dragPlaceholder,
+                this._dragPlaceholderPos);
+            this._dragPlaceholder.show(fadeIn);
+        }
+
+        if (!this._dragPlaceholder)
+            return DND.DragMotionResult.NO_DROP;
+
+        let srcIsFavorite = favPos != -1;
+
+        if (srcIsFavorite)
+            return DND.DragMotionResult.MOVE_DROP;
+
+        return DND.DragMotionResult.COPY_DROP;
+    },
+
+    _redisplay: function () {
+        let favorites = AppFavorites.getAppFavorites().getFavoriteMap();
+
+        let running = this._appSystem.get_running();
+
+        let children = this._box.get_children().filter(actor => {
+            return actor.child &&
+                actor.child._delegate &&
+                actor.child._delegate.app;
+        });
+        // Apps currently in the dash
+        let oldApps = children.map(actor => actor.child._delegate.app);
+        // Apps supposed to be in the dash
+        let newApps = [];
+
+        for (let id in favorites)
+            newApps.push(favorites[id]);
+
+        for (let i = 0; i < running.length; i++) {
+            let app = running[i];
+            if (app.get_id() in favorites)
+                continue;
+            newApps.push(app);
+        }
+
+        // Figure out the actual changes to the list of items; we iterate
+        // over both the list of items currently in the dash and the list
+        // of items expected there, and collect additions and removals.
+        // Moves are both an addition and a removal, where the order of
+        // the operations depends on whether we encounter the position
+        // where the item has been added first or the one from where it
+        // was removed.
+        // There is an assumption that only one item is moved at a given
+        // time; when moving several items at once, everything will still
+        // end up at the right position, but there might be additional
+        // additions/removals (e.g. it might remove all the launchers
+        // and add them back in the new order even if a smaller set of
+        // additions and removals is possible).
+        // If above assumptions turns out to be a problem, we might need
+        // to use a more sophisticated algorithm, e.g. Longest Common
+        // Subsequence as used by diff.
+        let addedItems = [];
+        let removedActors = [];
+
+        let newIndex = 0;
+        let oldIndex = 0;
+        while (newIndex < newApps.length || oldIndex < oldApps.length) {
+            let oldApp = oldApps.length > oldIndex ? oldApps[oldIndex] : null;
+            let newApp = newApps.length > newIndex ? newApps[newIndex] : null;
+
+            // No change at oldIndex/newIndex
+            if (oldApp == newApp) {
+                oldIndex++;
+                newIndex++;
+                continue;
+            }
+
+            // App removed at oldIndex
+            if (oldApp && !newApps.includes(oldApp)) {
+                removedActors.push(children[oldIndex]);
+                oldIndex++;
+                continue;
+            }
+
+            // App added at newIndex
+            if (newApp && !oldApps.includes(newApp)) {
+                addedItems.push({
+                    app: newApp,
+                    item: this._createAppItem(newApp),
+                    pos: newIndex
+                });
+                newIndex++;
+                continue;
+            }
+
+            // App moved
+            let nextApp = newApps.length > newIndex + 1
+                ? newApps[newIndex + 1] : null;
+            let insertHere = nextApp && nextApp == oldApp;
+            let alreadyRemoved = removedActors.reduce((result, actor) => {
+                let removedApp = actor.child._delegate.app;
+                return result || removedApp == newApp;
+            }, false);
+
+            if (insertHere || alreadyRemoved) {
+                let newItem = this._createAppItem(newApp);
+                addedItems.push({
+                    app: newApp,
+                    item: newItem,
+                    pos: newIndex + removedActors.length
+                });
+                newIndex++;
+            } else {
+                removedActors.push(children[oldIndex]);
+                oldIndex++;
+            }
+        }
+
+        for (let i = 0; i < addedItems.length; i++) {
+            this._box.insert_child_at_index(addedItems[i].item,
+                addedItems[i].pos);
+        }
+
+        for (let i = 0; i < removedActors.length; i++) {
+            let item = removedActors[i];
+
+            // Don't animate item removal when the overview is transitioning
+            // or hidden
+            if (Main.overview.visible && !Main.overview.animationInProgress)
+                item.animateOutAndDestroy();
+            else
+                item.destroy();
+        }
+
+        this._adjustIconSize();
+
+        // Skip animations on first run when adding the initial set
+        // of items, to avoid all items zooming in at once
+
+        let animate = this._shownInitially && Main.overview.visible &&
+            !Main.overview.animationInProgress;
+
+        if (!this._shownInitially)
+            this._shownInitially = true;
+
+        for (let i = 0; i < addedItems.length; i++)
+            addedItems[i].item.show(animate);
+
+        // Update separator
+        const nFavorites = Object.keys(favorites).length;
+        const nIcons = children.length + addedItems.length - removedActors.length;
+        if (nFavorites > 0 && nFavorites < nIcons) {
+            if (!this._separator) {
+                this._separator = new St.Widget({
+                    style_class: 'dash-separator',
+                    x_align: Clutter.ActorAlign.CENTER,
+                    y_align: Clutter.ActorAlign.CENTER,
+                    width: this.iconSize,
+                    margin_top: 14
+                });
+                this._box.add_child(this._separator);
+            }
+            let pos = nFavorites;
+            if (this._dragPlaceholder)
+                pos++;
+            this._box.set_child_at_index(this._separator, pos);
+        } else if (this._separator) {
+            this._separator.destroy();
+            this._separator = null;
+        }
+
+        // Workaround for https://bugzilla.gnome.org/show_bug.cgi?id=692744
+        // Without it, StBoxLayout may use a stale size cache
+        this._box.queue_relayout();
+    },
+
+    _adjustIconSize: function () {
+        // For the icon size, we only consider children which are "proper"
+        // icons (i.e. ignoring drag placeholders) and which are not
+        // animating out (which means they will be destroyed at the end of
+        // the animation)
+        let iconChildren = this._box.get_children().filter(actor => {
+            return actor.child &&
+                actor.child._delegate &&
+                actor.child._delegate.icon &&
+                !actor.animatingOut;
+        });
+
+        iconChildren.push(this._showAppsIcon);
+
+        if (this._maxWidth === -1 || this._maxHeight === -1)
+            return;
+
+        const themeNode = this.get_theme_node();
+        const maxAllocation = new Clutter.ActorBox({
+            x1: 0,
+            y1: 0,
+            x2: 42, /* not whatever */
+            y2: this._maxHeight,
+        });
+
+        let maxContent = themeNode.get_content_box(maxAllocation);
+        let spacing = themeNode.get_length('spacing');
+
+        let firstButton = iconChildren[0].child;
+        let firstIcon = firstButton._delegate.icon;
+
+        // Enforce valid spacings during the size request
+        firstIcon.icon.ensure_style();
+        const [, , iconWidth, iconHeight] = firstIcon.icon.get_preferred_size();
+        const [, , buttonWidth, buttonHeight] = firstButton.get_preferred_size();
+
+        let availWidth = this._maxWidth;
+        availWidth -= this._background.get_theme_node().get_horizontal_padding();
+        availWidth -= themeNode.get_horizontal_padding();
+        availWidth -= buttonWidth - iconWidth;
+
+        let availHeight = this._maxHeight;
+        availHeight -= iconChildren.length * (buttonHeight - iconHeight) +
+            (iconChildren.length - 1) * spacing;
+
+        const maxIconSize = Math.min(availWidth, availHeight / iconChildren.length);
+
+        let scaleFactor = St.ThemeContext.get_for_stage(global.stage).scale_factor;
+        let iconSizes = baseIconSizes.map(s => s * scaleFactor);
+
+        let newIconSize = baseIconSizes[0];
+        for (let i = 0; i < iconSizes.length; i++) {
+            if (iconSizes[i] <= maxIconSize)
+                newIconSize = baseIconSizes[i];
+        }
+
+        if (newIconSize == this.iconSize)
+            return;
+
+        let oldIconSize = this.iconSize;
+        this.iconSize = newIconSize;
+        this.emit('icon-size-changed');
+
+        let scale = oldIconSize / newIconSize;
+        for (let i = 0; i < iconChildren.length; i++) {
+            let icon = iconChildren[i].child._delegate.icon;
+
+            // Set the new size immediately, to keep the icons' sizes
+            // in sync with this.iconSize
+            icon.setIconSize(this.iconSize);
+
+            // Don't animate the icon size change when the overview
+            // is transitioning, not visible or when initially filling
+            // the dash
+            if (!Main.overview.visible || Main.overview.animationInProgress ||
+                !this._shownInitially)
+                continue;
+
+            let [targetWidth, targetHeight] = icon.icon.get_size();
+
+            // Scale the icon's texture to the previous size and
+            // tween to the new size
+            icon.icon.set_size(icon.icon.width * scale,
+                icon.icon.height * scale);
+
+            icon.icon.ease({
+                width: targetWidth,
+                height: targetHeight,
+                duration: DASH_ANIMATION_TIME,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+
+        if (this._separator) {
+            this._separator.ease({
+                width: this.iconSize,
+                duration: DASH_ANIMATION_TIME,
+                mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            });
+        }
+    },
+
+    _createAppItem: function (app) {
+        let appIcon = new DashIcon(app);
+
+        let indicator = appIcon._dot;
+        indicator.x_align = Clutter.ActorAlign.START;
+        indicator.y_align = null;
+
+        appIcon.connect('menu-state-changed',
+            (o, opened) => {
+                this._itemMenuStateChanged(item, opened);
+            });
+
+        let item = new DashItemContainer();
+        item.setChild(appIcon);
+
+        // Override default AppIcon label_actor, now the
+        // accessible_name is set at DashItemContainer.setLabelText
+        appIcon.label_actor = null;
+        item.setLabelText(app.get_name());
+
+        appIcon.icon.setIconSize(this.iconSize);
+        this._hookUpLabel(item, appIcon);
+
+        return item;
+    }
+}

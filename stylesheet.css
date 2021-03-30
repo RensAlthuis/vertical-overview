@@ -1,0 +1,26 @@
+
+#dash .dash-item-container .app-well-app, .show-apps {
+    padding: 0 !important;
+}
+
+#dash .dash-separator {
+    height: 1px;
+    margin-top: 14px;
+    background-color: transparentize(#eeeeec,0.7);
+}
+
+#dash .overview-icon {
+    padding: 0px 10px;
+}
+
+#dash .app-well-app-running-dot {
+    margin: 6px 0px;
+}
+
+.dash-item-container .app-well-app, .show-apps {
+    padding-left: 14px;
+}
+
+.dash-item-container:last-child {
+    margin-bottom: 14px
+}
