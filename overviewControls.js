@@ -78,8 +78,8 @@ var ControlsManagerLayout = {
     vfunc_allocate: function(container, box) {
         const childBox = new Clutter.ActorBox();
 
-        let leftOffset = 200; //TODO: fixme;
-        let rightOffset = 200; //TODO: fixme;
+        let leftOffset = this.leftOffset;
+        let rightOffset = this.rightOffset;
 
         const { spacing } = this;
 

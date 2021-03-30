@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions">
+    <schema path="/org/gnome/shell/extensions/vertical-overview/" id="org.gnome.shell.extensions.vertical-overview">
+        <key type="i" name="left-offset">
+            <default>200</default>
+            <summary>distance between left side of the monitor and the workspaces display</summary>
+            <description></description>
+        </key>
+        <key type="i" name="right-offset">
+            <default>200</default>
+            <summary>distance between right side of the monitor and the workspaces display</summary>
+            <description></description>
+        </key>
+    </schema>
+</schemalist>
