@@ -21,25 +21,14 @@ const baseIconSizes = [16, 22, 24, 32, 48, 64];
 
 function override() {
     let dash = Main.overview._overview._controls.dash;
+    global.vertical_overview.dash_workId = dash.workId;
+    dash._workId = Main.initializeDeferredWork(dash._box, dash._redisplay.bind(dash));
+
     dash._box.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
     dash._dashContainer.set_child_at_index(dash._dashContainer.first_child, 1) //move showAppbutton on top;
-    if (dash._separator) {
-        dash._separator.destroy();
-        dash._separator = null;
-    }
-    dash._separator = new St.Widget({
-        style_class: 'dash-separator',
-        y_align: Clutter.ActorAlign.END,
-        x_align: Clutter.ActorAlign.CENTER,
-        y_expand: false,
-        width: dash.iconSize,
-        margin_top: 14,
-        height: 1,
-    });
-    dash._box.add_child(dash._separator);
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
@@ -54,20 +43,21 @@ function override() {
 }
 
 function reset() {
-    let controlsManager = Main.overview._overview._controls;
-    controlsManager.dash._box.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
-    controlsManager.dash._dashContainer.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
-    controlsManager.dash._dashContainer.y_expand = true;
-    controlsManager.dash._dashContainer.x_expand = false;
+    let dash = Main.overview._overview._controls.dash;
+    dash._workId = global.vertical_overview.dash_workId; //pretty sure this is a leak, but there no provided way to disconnect these...
+    dash._box.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
+    dash._dashContainer.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
+    dash._dashContainer.y_expand = true;
+    dash._dashContainer.x_expand = false;
 
-    let sizerBox = controlsManager.dash._background.get_children()[0];
+    let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
     sizerBox.add_constraint(new Clutter.BindConstraint({
-        source: controlsManager.dash._showAppsIcon.icon,
+        source: dash._showAppsIcon.icon,
         coordinate: Clutter.BindCoordinate.HEIGHT,
     }));
     sizerBox.add_constraint(new Clutter.BindConstraint({
-        source: controlsManager.dash._dashContainer,
+        source: dash._dashContainer,
         coordinate: Clutter.BindCoordinate.WIDTH,
     }));
 }
@@ -288,13 +278,20 @@ var Dash = {
         const nFavorites = Object.keys(favorites).length;
         const nIcons = children.length + addedItems.length - removedActors.length;
         if (nFavorites > 0 && nFavorites < nIcons) {
+
+            // destroy the horizontal seperator if it exists.
+            // this is incredibly janky, but I can't think of a better way atm.
+            if (this._separator && this._separator.height !== 1) {
+                this._separator.destroy();
+                this._separator = null;
+            }
             if (!this._separator) {
                 this._separator = new St.Widget({
                     style_class: 'dash-separator',
                     x_align: Clutter.ActorAlign.CENTER,
                     y_align: Clutter.ActorAlign.CENTER,
                     width: this.iconSize,
-                    margin_top: 14
+                    height: 1
                 });
                 this._box.add_child(this._separator);
             }

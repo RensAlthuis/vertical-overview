@@ -64,7 +64,7 @@ function disable() {
     Main.overview._overview._controls._workspacesDisplay.set_clip_to_allocation(false);
     rebind_keys(Main.overview._overview._controls);
 
-    Dash.reset();
+    DashOverride.reset();
     Gestures.reset();
     global.workspaceManager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, 1, -1);
 
