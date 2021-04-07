@@ -9,6 +9,7 @@ In the future I'd like to add options to customize the exact layout and add supp
 Installing:
 ```
 $ git clone https://github.com/RensAlthuis/vertical-overview.git $HOME/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com
+$ glib-compile-schemas $HOME/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com/schemas
 
 logout/log in
 
