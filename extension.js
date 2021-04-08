@@ -21,7 +21,7 @@ const overrideProto = Util.overrideProto;
 
 function init() {
     global.vertical_overview = {};
-    global.vertical_overview.GSFunctions = {};
+    global.vertical_overview.overrides = {};
 }
 
 function enable() {
@@ -30,12 +30,13 @@ function enable() {
     bindSettings();
 
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
-    global.vertical_overview.GSFunctions['ControlsManagerLayout'] = overrideProto(OverviewControls.ControlsManagerLayout.prototype, OverviewControlsOverrides.ControlsManagerLayout);
-    global.vertical_overview.GSFunctions['ControlsManager'] = overrideProto(OverviewControls.ControlsManager.prototype, OverviewControlsOverrides.ControlsManager);
-    global.vertical_overview.GSFunctions['WorkspacesView'] = overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverrides.WorkspacesView);
-    global.vertical_overview.GSFunctions['ThumbnailsBox'] = overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, WorkspaceThumbnailOverrides.ThumbnailsBox);
-    global.vertical_overview.GSFunctions['WorkspaceThumbnail'] = overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, WorkspaceThumbnailOverrides.WorkspaceThumbnail);
-    global.vertical_overview.GSFunctions['Dash'] = overrideProto(Dash.Dash.prototype, DashOverride.Dash);
+    const overrides = global.vertical_overview.overrides;
+    overrides['ControlsManagerLayout'] = overrideProto(OverviewControls.ControlsManagerLayout.prototype, OverviewControlsOverrides.ControlsManagerLayout);
+    overrides['ControlsManager']       = overrideProto(OverviewControls.ControlsManager.prototype, OverviewControlsOverrides.ControlsManager);
+    overrides['WorkspacesView']        = overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverrides.WorkspacesView);
+    overrides['ThumbnailsBox']         = overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, WorkspaceThumbnailOverrides.ThumbnailsBox);
+    overrides['WorkspaceThumbnail']    = overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, WorkspaceThumbnailOverrides.WorkspaceThumbnail);
+    overrides['Dash']                  = overrideProto(Dash.Dash.prototype, DashOverride.Dash);
 
     let controlsManager = Main.overview._overview._controls;
     controlsManager._workspacesDisplay.set_clip_to_allocation(true);
@@ -55,11 +56,12 @@ function enable() {
 
 function disable() {
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] resetting overrides");
-    overrideProto(OverviewControls.ControlsManagerLayout.prototype, global.vertical_overview.GSFunctions['ControlsManagerLayout']);
-    overrideProto(OverviewControls.ControlsManager.prototype, global.vertical_overview.GSFunctions['ControlsManager']);
-    overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
-    overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
-    overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, global.vertical_overview.GSFunctions['WorkspaceThumbnail']);
+    const overrides = global.vertical_overview.overrides;
+    overrideProto(OverviewControls.ControlsManagerLayout.prototype, overrides['ControlsManagerLayout']);
+    overrideProto(OverviewControls.ControlsManager.prototype,       overrides['ControlsManager']);
+    overrideProto(WorkspacesView.WorkspacesView.prototype,          overrides['WorkspacesView']);
+    overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype,       overrides['ThumbnailsBox']);
+    overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype,  overrides['WorkspaceThumbnail']);
 
     let controlsManager = Main.overview._overview._controls;
     controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
