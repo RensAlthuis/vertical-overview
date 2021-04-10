@@ -1,16 +1,15 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
-/* exported Dash */
-
-const { Clutter, GLib, GObject,
-    Graphene, Meta, Shell, St } = imports.gi;
-
+const { Clutter, GLib, GObject, Graphene, Meta, Shell, St } = imports.gi;
 const AppDisplay = imports.ui.appDisplay;
 const AppFavorites = imports.ui.appFavorites;
 const DND = imports.ui.dnd;
 const IconGrid = imports.ui.iconGrid;
 const Main = imports.ui.main;
 const Overview = imports.ui.overview;
+const Dash = imports.ui.dash;
 const { DashIcon, DashItemContainer, getAppFromSource, DragPlaceholderItem } = imports.ui.dash;
+
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const Util = Self.imports.util;
 
 var DASH_ANIMATION_TIME = 200;
 var DASH_ITEM_LABEL_SHOW_TIME = 150;
@@ -20,15 +19,17 @@ var DASH_ITEM_HOVER_TIMEOUT = 300;
 const baseIconSizes = [16, 22, 24, 32, 48, 64];
 
 function override() {
+    global.vertical_overview.GSFunctions['Dash'] = Util.overrideProto(Dash.Dash.prototype, DashOverride);
+
     let dash = Main.overview._overview._controls.dash;
-    global.vertical_overview.dash_workId = dash.workId;
+    global.vertical_overview.dash_workId = dash._workId;
     dash._workId = Main.initializeDeferredWork(dash._box, dash._redisplay.bind(dash));
 
     dash._box.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
-    dash._dashContainer.set_child_at_index(dash._dashContainer.first_child, 1) //move showAppbutton on top;
+    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0) //move showAppbutton on top;
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
@@ -40,6 +41,9 @@ function override() {
         source: dash._dashContainer,
         coordinate: Clutter.BindCoordinate.HEIGHT,
     }));
+    dash._box.remove_all_children();
+    dash._separator = null;
+    dash._queueRedisplay();
 }
 
 function reset() {
@@ -60,9 +64,22 @@ function reset() {
         source: dash._dashContainer,
         coordinate: Clutter.BindCoordinate.WIDTH,
     }));
+
+    Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+    dash._box.remove_all_children();
+    dash._separator = null;
+    dash._queueRedisplay();
 }
 
-var Dash = {
+function show() {
+    Main.overview._overview._controls.dash.show();
+}
+
+function hide() {
+    Main.overview._overview._controls.dash.hide();
+}
+
+var DashOverride = {
     handleDragOver: function (source, actor, _x, y, _time) {
         let app = getAppFromSource(source);
 
@@ -128,8 +145,8 @@ var Dash = {
             }
 
             this._dragPlaceholder = new DragPlaceholderItem();
-            this._dragPlaceholder.child.set_width(this.iconSize);
-            this._dragPlaceholder.child.set_height(this.iconSize / 2);
+            this._dragPlaceholder.child.set_width(this.iconSize / 2);
+            this._dragPlaceholder.child.set_height(this.iconSize);
             this._box.insert_child_at_index(this._dragPlaceholder,
                 this._dragPlaceholderPos);
             this._dragPlaceholder.show(fadeIn);
@@ -278,13 +295,13 @@ var Dash = {
         const nFavorites = Object.keys(favorites).length;
         const nIcons = children.length + addedItems.length - removedActors.length;
         if (nFavorites > 0 && nFavorites < nIcons) {
-
             // destroy the horizontal seperator if it exists.
             // this is incredibly janky, but I can't think of a better way atm.
             if (this._separator && this._separator.height !== 1) {
                 this._separator.destroy();
                 this._separator = null;
             }
+
             if (!this._separator) {
                 this._separator = new St.Widget({
                     style_class: 'dash-separator',
@@ -293,8 +310,10 @@ var Dash = {
                     width: this.iconSize,
                     height: 1
                 });
-                this._box.add_child(this._separator);
+                this._box.add_child(this._separator)
             }
+
+            //FIXME: separator placement is broken (also in original dash)
             let pos = nFavorites;
             if (this._dragPlaceholder)
                 pos++;
@@ -303,7 +322,6 @@ var Dash = {
             this._separator.destroy();
             this._separator = null;
         }
-
         // Workaround for https://bugzilla.gnome.org/show_bug.cgi?id=692744
         // Without it, StBoxLayout may use a stale size cache
         this._box.queue_relayout();
@@ -350,7 +368,7 @@ var Dash = {
         availWidth -= themeNode.get_horizontal_padding();
         availWidth -= buttonWidth - iconWidth;
 
-        let availHeight = this._maxHeight;
+        let availHeight = maxContent.y2 - maxContent.y1;
         availHeight -= iconChildren.length * (buttonHeight - iconHeight) +
             (iconChildren.length - 1) * spacing;
 

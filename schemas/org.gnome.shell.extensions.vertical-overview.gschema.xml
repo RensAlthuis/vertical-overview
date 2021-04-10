@@ -16,5 +16,15 @@
             <summary>Maximum height of the dash</summary>
             <description></description>
         </key>
+        <key type="b" name="override-dash">
+            <default>true</default>
+            <summary>Disable if you are use other extensions that override the dash</summary>
+            <description></description>
+        </key>
+        <key type="b" name="hide-dash">
+            <default>false</default>
+            <summary>hide the dash</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>

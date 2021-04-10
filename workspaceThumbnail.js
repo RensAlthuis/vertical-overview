@@ -1,12 +1,12 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
-/* exported WorkspaceThumbnail, ThumbnailsBox */
-
 const { Clutter, Gio, GLib, GObject, Graphene, Meta, Shell, St } = imports.gi;
 
 const DND = imports.ui.dnd;
 const Main = imports.ui.main;
-const Util = imports.misc.util;
 const Workspace = imports.ui.workspace;
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const Util = Self.imports.util
 
 const NUM_WORKSPACES_THRESHOLD = 2;
 
@@ -25,7 +25,15 @@ var WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 var MUTTER_SCHEMA = 'org.gnome.mutter';
 
-var ThumbnailsBox = {
+function override() {
+    global.vertical_overview.GSFunctions['ThumbnailsBox'] = Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, ThumbnailsBoxOverride);
+}
+
+function reset() {
+    Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
+}
+
+var ThumbnailsBoxOverride = {
     _updateShouldShow: function() {
         const shouldShow = true;
 

@@ -82,5 +82,47 @@
                 </layout>
             </object>
         </child>
+        <child>
+            <object class="GtkLabel" id="override-dash-label">
+                <property name="label">override dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="override-dash">
+                <property name="name">override-dash</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="hide-dash-label">
+                <property name="label">hide dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="hide-dash">
+                <property name="name">hide-dash</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
     </object>
 </interface>
