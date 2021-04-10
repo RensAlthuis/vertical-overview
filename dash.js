@@ -25,6 +25,8 @@ function override() {
     global.vertical_overview.dash_workId = dash._workId;
     dash._workId = Main.initializeDeferredWork(dash._box, dash._redisplay.bind(dash));
 
+    dash.set_style_class_name((dash.style_class || "") + " vertical-overview");
+
     dash._box.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.y_expand = false;
@@ -53,6 +55,8 @@ function reset() {
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
     dash._dashContainer.y_expand = true;
     dash._dashContainer.x_expand = false;
+
+    dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();

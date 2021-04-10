@@ -39,7 +39,6 @@ function enable() {
     //rebinding keys is necessary because bound functions don't update if the prototype for that function is changed
     rebind_keys(Main.overview._overview._controls);
 
-
     if (__DEBUG__) global.log("[VERTICAL_OVERVIEW] enabled");
 }
 
@@ -77,16 +76,31 @@ function bindSettings() {
         Main.overview._overview._controls.layoutManager.rightOffset = v.get_int(e);
     });
 
-    controlsManager.layoutManager.dashMaxHeightScale = settings.get_int('dash-max-height') / 100.0;
-    settings.connect('changed::dash-max-height', (v, e) => {
-        controlsManager.layoutManager.dashMaxHeightScale = v.get_int(e) / 100.0;
-    });
+    let dash_max_height_id = null;
+    let dash_max_height_scale = controlsManager.layoutManager.dashMaxHeightScale;
+    let bind_dash_max_height = function () {
+        controlsManager.layoutManager.dashMaxHeightScale = settings.get_int('dash-max-height') / 100.0;
+        dash_max_height_id = settings.connect('changed::dash-max-height', (v, e) => {
+            controlsManager.layoutManager.dashMaxHeightScale = v.get_int(e) / 100.0;
+        });
+    }
+
+    if (settings.get_boolean('override-dash')) {
+        bind_dash_max_height();
+    }
 
     settings.connect('changed::override-dash', (v, e) => {
         if (v.get_boolean(e)) {
             DashOverride.override();
+            if (dash_max_height_id == null)
+                bind_dash_max_height();
         } else {
             DashOverride.reset();
+            if (dash_max_height_id != null) {
+                settings.disconnect(dash_max_height_id);
+                dash_max_height_id = null;
+                controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
+            }
         }
     });
 
