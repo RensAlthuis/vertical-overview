@@ -5,7 +5,7 @@ build: clean
 	mv vertical-overview@RensAlthuis.github.com _build/
 
 clean:
-	rm -r _build
+	if test  -d _build; then rm -r _build; fi
 
 install:
 	gnome-extensions install -f ./_build/vertical-overview@RensAlthuis.github.com
