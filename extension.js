@@ -13,13 +13,12 @@ const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
 
 function init() {
-    global.vertical_overview = {};
-    global.vertical_overview.GSFunctions = {};
 }
 
 function enable() {
-
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] Bind settings");
+    global.vertical_overview = {};
+    global.vertical_overview.GSFunctions = {};
     bindSettings();
 
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
@@ -58,6 +57,8 @@ function disable() {
 
     global.workspaceManager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, 1, -1);
 
+    global.vertical_overview.settings.run_dispose();
+    delete global.vertical_overview;
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] disabled");
 }
 
@@ -68,6 +69,7 @@ function bindSettings() {
 
     controlsManager.layoutManager.leftOffset = settings.get_int('left-offset');
     settings.connect('changed::left-offset', (v, e) => {
+        log('hi');
         Main.overview._overview._controls.layoutManager.leftOffset = v.get_int(e);
     });
 
