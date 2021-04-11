@@ -8,10 +8,16 @@ In the future I'd like to add options to customize the exact layout and add supp
 
 Installing:
 ```
-$ git clone https://github.com/RensAlthuis/vertical-overview.git $HOME/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com
-$ glib-compile-schemas $HOME/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com/schemas
+$ git clone https://github.com/RensAlthuis/vertical-overview.git
+$ cd vertical-overview
+$ make
+$ make install
 
-logout/log in
+if you use X11:
+    reload the server (press alt+f2, type r)
+
+if you use Wayland:
+    logout/log in
 
 $ gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
