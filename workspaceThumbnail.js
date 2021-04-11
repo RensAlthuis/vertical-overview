@@ -171,11 +171,15 @@ var ThumbnailsBoxOverride = {
             });
         }
 
+        let thumbnails_position = (global.vertical_overview.settings.get_int('thumbnails-position') || 1);
+        let totalHeight = (height * this._thumbnails.length) + spacing;
+        box.y1 = (box.get_height() - totalHeight) / (100 / thumbnails_position);
+
         let childBox = new Clutter.ActorBox();
         for (let i = 0; i < this._thumbnails.length; i++) {
             let thumbnail = this._thumbnails[i];
 
-            let y1 = box.x1 + (height + spacing) * i;
+            let y1 = box.y1 + (height + spacing) * i;
 
             const [placeholderWidth, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
             if (i === this._dropPlaceholderPos) {
