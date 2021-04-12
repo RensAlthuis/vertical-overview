@@ -7,19 +7,22 @@ A choice that many Gnome users disagree with. This extension completely replaces
 In the future I'd like to add options to customize the exact layout and add support for the Dash-to-Panel extension.
 
 Installing:
+
 ```
-$ git clone https://github.com/RensAlthuis/vertical-overview.git
-$ cd vertical-overview
-$ make
-$ make install
+git clone https://github.com/RensAlthuis/vertical-overview.git
+cd vertical-overview
+make
+make install
+```
 
-if you use X11:
-    reload the server (press alt+f2, type r)
+If you use X11, reload the server (press `Alt-F2` and type `r`).
+If you use Wayland, log out and log in.
+You can detect your Windowing System in Settings → About.
 
-if you use Wayland:
-    logout/log in
+Then enable the extension in "Extensions" application or via command:
 
-$ gnome-extensions enable vertical-overview@RensAlthuis.github.com
+```
+gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
 
 ![image](../assets/vertical-overview.png)
