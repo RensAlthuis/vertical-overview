@@ -11,7 +11,6 @@ const WorkspacesViewOverrides = Self.imports.workspacesView;
 const WorkspaceThumbnailOverrides = Self.imports.workspaceThumbnail;
 const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
-const overrideProto = Util.overrideProto;
 
 function init() {
 }
