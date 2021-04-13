@@ -1,13 +1,13 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
-/* exported WorkspaceThumbnail, ThumbnailsBox */
-
 const { Clutter, Gio, GLib, GObject, Graphene, Meta, Shell, St } = imports.gi;
 
 const DND = imports.ui.dnd;
 const Main = imports.ui.main;
 const Background = imports.ui.background;
-const Util = imports.misc.util;
 const Workspace = imports.ui.workspace;
+const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
+
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const Util = Self.imports.util
 
 const NUM_WORKSPACES_THRESHOLD = 2;
 
@@ -26,13 +26,17 @@ var WORKSPACE_KEEP_ALIVE_TIME = 100;
 
 var MUTTER_SCHEMA = 'org.gnome.mutter';
 
+function override() {
+    global.vertical_overview.GSFunctions['ThumbnailsBox'] = Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, ThumbnailsBoxOverride);
+    global.vertical_overview.GSFunctions['WorkspaceThumbnail'] = Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, WorkspaceThumbnailOverride);
+}
 
-/*
- * Our overrides are here
- *  - Wallpapers restored from https://github.com/GNOME/gnome-shell/commit/451ba5b03ad714366cb0ce6105cb775f84b051ba
- */
+function reset() {
+    Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
+    Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, global.vertical_overview.GSFunctions['WorkspaceThumbnail']);
+}
 
-var ThumbnailsBox = {
+var ThumbnailsBoxOverride = {
     _updateShouldShow: function() {
         const shouldShow = true;
 
@@ -170,11 +174,15 @@ var ThumbnailsBox = {
             });
         }
 
+        let thumbnails_position = (global.vertical_overview.settings.get_int('thumbnails-position') || 1);
+        let totalHeight = (height * this._thumbnails.length) + spacing;
+        box.y1 = (box.get_height() - totalHeight) / (100 / thumbnails_position);
+
         let childBox = new Clutter.ActorBox();
         for (let i = 0; i < this._thumbnails.length; i++) {
             let thumbnail = this._thumbnails[i];
 
-            let y1 = box.x1 + (height + spacing) * i;
+            let y1 = box.y1 + (height + spacing) * i;
 
             const [placeholderWidth, placeholderHeight] = this._dropPlaceholder.get_preferred_height(-1);
             if (i === this._dropPlaceholderPos) {
@@ -228,7 +236,7 @@ var ThumbnailsBox = {
     }
 }
 
-var WorkspaceThumbnail = {
+var WorkspaceThumbnailOverride = {
     after__init: function() {
         this._contents.add_actor(this._getBackground().backgroundActor);
     },

@@ -29,6 +29,14 @@ const BuilderScope = GObject.registerClass({
             this.settings.set_int(value.name, value.value);
         }
     }
+
+    _onBoolValueChanged(value) {
+        let current = this.settings.get_boolean(value.name);
+        if (value.active != current) {
+            if (__DEBUG__) log('value-changed: ' + value.name + " -> " + value.active);
+            this.settings.set_boolean(value.name, value.active);
+        }
+    }
 });
 
 function init() { }
@@ -47,6 +55,7 @@ function buildPrefsWidget() {
         let value = settings.get_value(key);
         switch (value.get_type_string()) {
             case "i": obj.set_property('value', value.get_int32()); break;
+            case "b": obj.set_property('active', value.get_boolean()); break;
         }
     }
 

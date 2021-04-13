@@ -1,35 +1,28 @@
 // -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
 /* exported WorkspacesView, WorkspacesDisplay */
 
-const { Clutter, Gio, GObject, Meta, Shell, St } = imports.gi;
-
-const Layout = imports.ui.layout;
-const Main = imports.ui.main;
 const OverviewControls = imports.ui.overviewControls;
-const SwipeTracker = imports.ui.swipeTracker;
-const Util = imports.misc.util;
-const Workspace = imports.ui.workspace;
+const WorkspacesView = imports.ui.workspacesView;
+const Main = imports.ui.main;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const { ThumbnailsBox, MAX_THUMBNAIL_SCALE } = Self.imports.workspaceThumbnail;
+const Util = Self.imports.util;
 
-var WORKSPACE_SWITCH_TIME = 250;
+function override() {
+    global.vertical_overview.GSFunctions['WorkspacesView'] = Util.overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverride);
 
-const MUTTER_SCHEMA = 'org.gnome.mutter';
+    let controlsManager = Main.overview._overview._controls;
+    controlsManager._workspacesDisplay.set_clip_to_allocation(true);
+}
 
-const WORKSPACE_MIN_SPACING = 24;
-const WORKSPACE_MAX_SPACING = 80;
+function reset() {
+    Util.overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
 
-const WORKSPACE_INACTIVE_SCALE = 0.94;
+    let controlsManager = Main.overview._overview._controls;
+    controlsManager._workspacesDisplay.set_clip_to_allocation(false);
+}
 
-const SECONDARY_WORKSPACE_SCALE = 0.70;
-
-var FitMode = {
-    SINGLE: 0,
-    ALL: 1,
-};
-
-var WorkspacesView = {
+var WorkspacesViewOverride = {
     _getWorkspaceModeForOverviewState: function(state) {
         const { ControlsState } = OverviewControls;
 

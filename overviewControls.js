@@ -13,6 +13,10 @@ const Util = imports.misc.util;
 const WindowManager = imports.ui.windowManager;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 const WorkspacesView = imports.ui.workspacesView;
+const OverviewControls = imports.ui.overviewControls;
+
+const Self = imports.misc.extensionUtils.getCurrentExtension();
+const _Util = Self.imports.util;
 
 const SMALL_WORKSPACE_RATIO = 0.15;
 const DASH_MAX_HEIGHT_RATIO = 0.15;
@@ -26,9 +30,27 @@ var ControlsState = {
     WINDOW_PICKER: 1,
     APP_GRID: 2,
 };
-// ControlsManagerLayout
 
-var ControlsManagerLayout = {
+function override() {
+    global.vertical_overview.GSFunctions['ControlsManagerLayout'] = _Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, ControlsManagerLayoutOverride);
+    global.vertical_overview.GSFunctions['ControlsManager'] = _Util.overrideProto(OverviewControls.ControlsManager.prototype, ControlsManagerOverride);
+
+    let controlsManager = Main.overview._overview._controls;
+    global.vertical_overview._updateID = controlsManager._stateAdjustment.connect("notify::value", _updateWorkspacesDisplay.bind(controlsManager));
+}
+
+function reset() {
+    _Util.overrideProto(OverviewControls.ControlsManagerLayout.prototype, global.vertical_overview.GSFunctions['ControlsManagerLayout']);
+    _Util.overrideProto(OverviewControls.ControlsManager.prototype, global.vertical_overview.GSFunctions['ControlsManager']);
+
+    let controlsManager = Main.overview._overview._controls;
+    controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
+    controlsManager._workspacesDisplay.reactive = true;
+    controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
+
+}
+
+var ControlsManagerLayoutOverride = {
     _computeWorkspacesBoxForState: function (state, box, startY, searchHeight, leftOffset, rightOffset) {
         const workspaceBox = box.copy();
         const [width, height] = workspaceBox.get_size();
@@ -100,13 +122,27 @@ var ControlsManagerLayout = {
         availableHeight -= searchHeight + spacing;
 
         // Dash
-        let dashHeight = (height - startY) * this.dashMaxHeightScale;
-        this._dash.setMaxSize(leftOffset, dashHeight);
-        let [, maxDashWidth] = this._dash.get_preferred_width(height - startY);
-        dashWidth = Math.min(maxDashWidth, leftOffset);
-        childBox.set_origin(0, startY);
-        childBox.set_size(dashWidth, (height - startY));
-        this._dash.allocate(childBox);
+        if (!global.vertical_overview.settings.get_boolean('hide-dash')) {
+            if (global.vertical_overview.settings.get_boolean('override-dash')) {
+                let dashHeight = (height - startY) * this.dashMaxHeightScale;
+                this._dash.setMaxSize(leftOffset, dashHeight);
+                let [, maxDashWidth] = this._dash.get_preferred_width(height - startY);
+                dashWidth = Math.min(maxDashWidth, leftOffset);
+                childBox.set_origin(0, startY);
+                childBox.set_size(dashWidth, (height - startY));
+                this._dash.allocate(childBox);
+            } else {
+                const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
+                this._dash.setMaxSize(width, maxDashHeight);
+
+                let [, dashHeight] = this._dash.get_preferred_height(width);
+                dashHeight = Math.min(dashHeight, maxDashHeight);
+                childBox.set_origin(0, startY + height - dashHeight);
+                childBox.set_size(width, dashHeight);
+                this._dash.allocate(childBox);
+            }
+        }
+
 
         // Workspace Thumbnails
         if (this._workspacesThumbnails.visible) {
@@ -164,8 +200,7 @@ var ControlsManagerLayout = {
     }
 }
 
-//ControlsManager
-var ControlsManager = {
+var ControlsManagerOverride = {
     _getFitModeForState: function(state) {
         switch (state) {
             case ControlsState.HIDDEN:

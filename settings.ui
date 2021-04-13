@@ -17,6 +17,12 @@
         <property name="step_increment">1</property>
         <property name="page_increment">5</property>
     </object>
+    <object class="GtkAdjustment" id="thumbnails-position-adjustment">
+        <property name="lower">0</property>
+        <property name="upper">100</property>
+        <property name="step_increment">1</property>
+        <property name="page_increment">5</property>
+    </object>
     <object class="GtkGrid" id="main_widget">
         <property name="margin-start">16</property>
         <property name="margin-top">16</property>
@@ -43,6 +49,15 @@
             </object>
         </child>
         <child>
+            <object class="GtkLabel" id="left-offset-description">
+                <property name="label">Distance in pixels from left of screen to workspaces display</property>
+                <layout>
+                    <property name="column">2</property>
+                    <property name="row">0</property>
+                </layout>
+            </object>
+        </child>
+        <child>
             <object class="GtkLabel" id="right-offset-label">
                 <property name="label">Right offset</property>
                 <layout>
@@ -58,6 +73,15 @@
                 <signal name="value-changed" handler="_onIntValueChanged" />
                 <layout>
                     <property name="column">1</property>
+                    <property name="row">1</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="right-offset-description">
+                <property name="label">Distance in pixels from right of screen to workspaces display</property>
+                <layout>
+                    <property name="column">2</property>
                     <property name="row">1</property>
                 </layout>
             </object>
@@ -79,6 +103,87 @@
                 <layout>
                     <property name="column">1</property>
                     <property name="row">2</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="override-dash-label">
+                <property name="label">override dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="override-dash">
+                <property name="name">override-dash</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="override-dash-description">
+                <property name="label">disable if you use an extension that replaces the dash</property>
+                <layout>
+                    <property name="column">2</property>
+                    <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="hide-dash-label">
+                <property name="label">hide dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="hide-dash">
+                <property name="name">hide-dash</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="thumbnails-position-label">
+                <property name="label">Thumbnail position</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">5</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSpinButton" id="thumbnails-position">
+                <property name="name">thumbnails-position</property>
+                <property name="adjustment">thumbnails-position-adjustment</property>
+                <signal name="value-changed" handler="_onIntValueChanged" />
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">5</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="thumbnails-position-description">
+                <property name="label">Center of gravity for thumbnail alignment
+(0 = top, 50 = centered, 100 = end)</property>
+                <layout>
+                    <property name="column">2</property>
+                    <property name="row">5</property>
                 </layout>
             </object>
         </child>
