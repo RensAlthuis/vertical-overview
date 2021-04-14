@@ -237,26 +237,16 @@ var ThumbnailsBoxOverride = {
 }
 
 var WorkspaceThumbnailOverride = {
-    after__init: function() {
-        this._contents.add_actor(this._getBackground().backgroundActor);
-    },
+    after__init: function () {
+        this._bgManager = new Background.BackgroundManager({
+            monitorIndex: Main.layoutManager.primaryIndex,
+            container: this._contents,
+            vignette: false
+        });
 
-    _getBackground: function() {
-        if (!this._bgManager)
-            this._bgManager = new Background.BackgroundManager({ monitorIndex: Main.layoutManager.primaryIndex,
-                                                             container: this._contents,
-                                                             vignette: false });
-        return this._bgManager;
-    },
-
-    _onDestroy: function() {
-        this.workspaceRemoved();
-
-        if (this._bgManager) {
+        this.connect('destroy', (function () {
             this._bgManager.destroy();
             this._bgManager = null;
-        }
-
-        this._windows = [];
-    },
+        }).bind(this));
+    }
 }
