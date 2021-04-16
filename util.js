@@ -44,13 +44,29 @@ function hookVfunc(proto, symbol, func) {
 }
 
 function overrideProto(proto, overrides) {
-    backup = {}
+    const backup = {};
+
     for (var symbol in overrides) {
-        backup[symbol] = proto[symbol];
-        if (symbol.startsWith('vfunc')) {
-            hookVfunc(proto, symbol.substr(6), overrides[symbol]);
-        } else {
-            proto[symbol] = overrides[symbol];
+        if (symbol.startsWith('after_')) {
+            const actualSymbol = symbol.substr('after_'.length);
+            const fn = proto[actualSymbol];
+            const afterFn = overrides[symbol]
+            proto[actualSymbol] = function() {
+                const args = Array.prototype.slice.call(arguments);
+                const res = fn.apply(this, args);
+                afterFn.apply(this, args);
+                return res;
+            };
+            backup[actualSymbol] = fn;
+        }
+        else {
+            if (symbol.startsWith('vfunc')) {
+                hookVfunc(proto, symbol.substr(6), overrides[symbol]);
+            }
+            else {
+                proto[symbol] = overrides[symbol];
+            }
+            backup[symbol] = proto[symbol];
         }
     }
     return backup;

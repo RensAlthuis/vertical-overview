@@ -2,6 +2,7 @@ const { Clutter, Gio, GLib, GObject, Graphene, Meta, Shell, St } = imports.gi;
 
 const DND = imports.ui.dnd;
 const Main = imports.ui.main;
+const Background = imports.ui.background;
 const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
@@ -27,10 +28,12 @@ var MUTTER_SCHEMA = 'org.gnome.mutter';
 
 function override() {
     global.vertical_overview.GSFunctions['ThumbnailsBox'] = Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, ThumbnailsBoxOverride);
+    global.vertical_overview.GSFunctions['WorkspaceThumbnail'] = Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, WorkspaceThumbnailOverride);
 }
 
 function reset() {
     Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
+    Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, global.vertical_overview.GSFunctions['WorkspaceThumbnail']);
 }
 
 var ThumbnailsBoxOverride = {
@@ -230,5 +233,20 @@ var ThumbnailsBoxOverride = {
         childBox.x1 -= indicatorLeftFullBorder;
         childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
+    }
+}
+
+var WorkspaceThumbnailOverride = {
+    after__init: function () {
+        this._bgManager = new Background.BackgroundManager({
+            monitorIndex: Main.layoutManager.primaryIndex,
+            container: this._contents,
+            vignette: false
+        });
+
+        this.connect('destroy', (function () {
+            this._bgManager.destroy();
+            this._bgManager = null;
+        }).bind(this));
     }
 }
