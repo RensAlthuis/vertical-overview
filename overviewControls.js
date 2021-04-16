@@ -320,6 +320,7 @@ function _updateWorkspacesDisplay() {
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
     let workspacesDisplayVisible =
+        finalState == ControlsState.HIDDEN ||
         (finalState == ControlsState.WINDOW_PICKER ||
             (initialState == ControlsState.WINDOW_PICKER && progress != 1)) &&
         !searchActive;
