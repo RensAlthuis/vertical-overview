@@ -57,7 +57,9 @@ function disable() {
 
     global.workspaceManager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, 1, -1);
 
-    global.vertical_overview.settings.run_dispose();
+    global.vertical_overview.signals.forEach(id => {
+        global.vertical_overview.settings.disconnect(id);
+    });
     delete global.vertical_overview;
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] disabled");
 }
@@ -65,18 +67,18 @@ function disable() {
 function bindSettings() {
     let controlsManager = Main.overview._overview._controls;
     let settings = Util.getSettings('org.gnome.shell.extensions.vertical-overview');
+    let signals = [];
     global.vertical_overview.settings = settings;
 
     controlsManager.layoutManager.leftOffset = settings.get_int('left-offset');
-    settings.connect('changed::left-offset', (v, e) => {
-        log('hi');
+    signals.push(settings.connect('changed::left-offset', (v, e) => {
         Main.overview._overview._controls.layoutManager.leftOffset = v.get_int(e);
-    });
+    }));
 
     controlsManager.layoutManager.rightOffset = settings.get_int('right-offset');
-    settings.connect('changed::right-offset', (v, e) => {
+    signals.push(settings.connect('changed::right-offset', (v, e) => {
         Main.overview._overview._controls.layoutManager.rightOffset = v.get_int(e);
-    });
+    }));
 
     let dash_max_height_id = null;
     let dash_max_height_scale = controlsManager.layoutManager.dashMaxHeightScale;
@@ -85,13 +87,14 @@ function bindSettings() {
         dash_max_height_id = settings.connect('changed::dash-max-height', (v, e) => {
             controlsManager.layoutManager.dashMaxHeightScale = v.get_int(e) / 100.0;
         });
+        signals.push(dash_max_height_id);
     }
 
     if (settings.get_boolean('override-dash')) {
         bind_dash_max_height();
     }
 
-    settings.connect('changed::override-dash', (v, e) => {
+    signals.push(settings.connect('changed::override-dash', (v, e) => {
         if (v.get_boolean(e)) {
             DashOverride.override();
             if (dash_max_height_id == null)
@@ -100,19 +103,22 @@ function bindSettings() {
             DashOverride.reset();
             if (dash_max_height_id != null) {
                 settings.disconnect(dash_max_height_id);
+                signals.splice(signals.indexOf(dash_max_height_id), 1);
                 dash_max_height_id = null;
                 controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
             }
         }
-    });
+    }));
 
-    settings.connect('changed::hide-dash', (v, e) => {
+    signals.push(settings.connect('changed::hide-dash', (v, e) => {
         if (v.get_boolean(e)) {
             DashOverride.hide();
         } else {
             DashOverride.show();
         }
-    });
+    }));
+
+    global.vertical_overview.signals = signals;
 }
 
 function rebind_keys(self) {

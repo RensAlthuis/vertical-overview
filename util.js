@@ -60,13 +60,13 @@ function overrideProto(proto, overrides) {
             backup[actualSymbol] = fn;
         }
         else {
+            backup[symbol] = proto[symbol];
             if (symbol.startsWith('vfunc')) {
                 hookVfunc(proto, symbol.substr(6), overrides[symbol]);
             }
             else {
                 proto[symbol] = overrides[symbol];
             }
-            backup[symbol] = proto[symbol];
         }
     }
     return backup;
