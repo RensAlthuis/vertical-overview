@@ -66,8 +66,8 @@ var ControlsManagerLayoutOverride = {
                 leftOffset + spacing,
                 startY + searchHeight + spacing * expandFraction);
             workspaceBox.set_size(
-                width - leftOffset - rightOffset,
-                height - searchHeight - spacing * expandFraction);
+                width - leftOffset - rightOffset - (spacing * 2),
+                height - (workspaceBox.y1 * 2));
             break;
         }
 
@@ -127,16 +127,15 @@ var ControlsManagerLayoutOverride = {
                 let dashHeight = (height - startY) * this.dashMaxHeightScale;
                 this._dash.setMaxSize(leftOffset, dashHeight);
                 let [, maxDashWidth] = this._dash.get_preferred_width(height - startY);
-                dashWidth = Math.min(maxDashWidth, leftOffset);
                 childBox.set_origin(0, startY);
-                childBox.set_size(dashWidth, (height - startY));
+                childBox.set_size(leftOffset, (height - startY));
                 this._dash.allocate(childBox);
             } else {
                 const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
                 this._dash.setMaxSize(width, maxDashHeight);
 
                 let [, dashHeight] = this._dash.get_preferred_height(width);
-                dashHeight = Math.min(dashHeight, maxDashHeight);
+                dashHeight = height - startY;
                 childBox.set_origin(0, startY + height - dashHeight);
                 childBox.set_size(width, dashHeight);
                 this._dash.allocate(childBox);

@@ -1,5 +1,3 @@
-// -*- mode: js; js-indent-level: 4; indent-tabs-mode: nil -*-
-/* exported WorkspacesView, WorkspacesDisplay */
 
 const OverviewControls = imports.ui.overviewControls;
 const WorkspacesView = imports.ui.workspacesView;
