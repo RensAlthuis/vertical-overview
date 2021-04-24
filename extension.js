@@ -1,6 +1,6 @@
 const __DEBUG__ = true;
 
-const { Gio, Meta, Shell, Clutter, GObject} = imports.gi;
+const { Gio, Meta, Shell, Clutter, GObject, Graphene, St } = imports.gi;
 const WindowManager = imports.ui.windowManager;
 const Main = imports.ui.main;
 
@@ -11,6 +11,8 @@ const WorkspacesViewOverrides = Self.imports.workspacesView;
 const WorkspaceThumbnailOverrides = Self.imports.workspaceThumbnail;
 const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
+const Background = imports.ui.background;
+const WorkspaceOverride = Self.imports.workspace;
 
 function init() {
 }
@@ -25,6 +27,7 @@ function enable() {
     OverviewControlsOverride.override();
     WorkspacesViewOverrides.override();
     WorkspaceThumbnailOverrides.override();
+    WorkspaceOverride.override();
     Gestures.override();
 
     if (global.vertical_overview.settings.get_boolean('override-dash'))
@@ -38,6 +41,7 @@ function enable() {
     //rebinding keys is necessary because bound functions don't update if the prototype for that function is changed
     rebind_keys(Main.overview._overview._controls);
 
+
     if (__DEBUG__) global.log("[VERTICAL_OVERVIEW] enabled");
 }
 
@@ -47,7 +51,9 @@ function disable() {
     OverviewControlsOverride.reset();
     WorkspacesViewOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
+    WorkspaceOverride.reset()
     Gestures.reset();
+
     if (global.vertical_overview.settings.get_boolean('override-dash'))
         DashOverride.reset();
     if (global.vertical_overview.settings.get_boolean('hide-dash'))
