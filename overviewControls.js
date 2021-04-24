@@ -66,8 +66,8 @@ var ControlsManagerLayoutOverride = {
                 leftOffset + spacing,
                 startY + searchHeight + spacing * expandFraction);
             workspaceBox.set_size(
-                width - leftOffset - rightOffset,
-                height - searchHeight - spacing * expandFraction);
+                width - leftOffset - rightOffset - (spacing * 2),
+                height - (workspaceBox.y1 * 2));
             break;
         }
 
