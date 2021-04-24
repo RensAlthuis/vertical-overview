@@ -17,6 +17,7 @@ const BACKGROUND_MARGIN = 12;
 const Workspace = imports.ui.workspace;
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const _Util = Self.imports.util;
+const animateAllocation = imports.ui.workspace.animateAllocation;
 
 function override() {
 
@@ -285,16 +286,3 @@ WorkspaceLayoutOverride = {
     }
 
 }
-
-function animateAllocation(actor, box) {
-    actor.save_easing_state();
-    actor.set_easing_mode(Clutter.AnimationMode.EASE_OUT_QUAD);
-    actor.set_easing_duration(200);
-
-    actor.allocate(box);
-
-    actor.restore_easing_state();
-
-    return actor.get_transition('allocation');
-}
-
