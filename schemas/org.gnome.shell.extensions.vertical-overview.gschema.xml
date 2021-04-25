@@ -31,5 +31,15 @@
             <summary>position of thumbnails in percentage</summary>
             <description></description>
         </key>
+        <key type="b" name="static-background">
+            <default>false</default>
+            <summary>add static background</summary>
+            <description></description>
+        </key>
+        <key type="b" name="scaling-workspace-background">
+            <default>true</default>
+            <summary>scaling workspace background in overview</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>

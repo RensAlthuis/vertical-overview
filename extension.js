@@ -1,6 +1,6 @@
 const __DEBUG__ = true;
 
-const { Gio, Meta, Shell, Clutter, GObject} = imports.gi;
+const { Gio, Meta, Shell, Clutter, GObject, Graphene, St } = imports.gi;
 const WindowManager = imports.ui.windowManager;
 const Main = imports.ui.main;
 
@@ -11,32 +11,29 @@ const WorkspacesViewOverrides = Self.imports.workspacesView;
 const WorkspaceThumbnailOverrides = Self.imports.workspaceThumbnail;
 const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
+const Background = imports.ui.background;
+const WorkspaceOverride = Self.imports.workspace;
 
 function init() {
 }
 
 function enable() {
-    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] Bind settings");
+    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
     global.vertical_overview = {};
     global.vertical_overview.GSFunctions = {};
     bindSettings();
 
-    if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
     OverviewControlsOverride.override();
     WorkspacesViewOverrides.override();
     WorkspaceThumbnailOverrides.override();
     Gestures.override();
-
-    if (global.vertical_overview.settings.get_boolean('override-dash'))
-        DashOverride.override();
-    if (global.vertical_overview.settings.get_boolean('hide-dash'))
-        DashOverride.show();
 
     //this is the magic function that switches the internal layout to vertical
     global.workspace_manager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, true, -1, 1);
 
     //rebinding keys is necessary because bound functions don't update if the prototype for that function is changed
     rebind_keys(Main.overview._overview._controls);
+
 
     if (__DEBUG__) global.log("[VERTICAL_OVERVIEW] enabled");
 }
@@ -47,7 +44,9 @@ function disable() {
     OverviewControlsOverride.reset();
     WorkspacesViewOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
+    WorkspaceOverride.reset()
     Gestures.reset();
+
     if (global.vertical_overview.settings.get_boolean('override-dash'))
         DashOverride.reset();
     if (global.vertical_overview.settings.get_boolean('hide-dash'))
@@ -66,59 +65,60 @@ function disable() {
 
 function bindSettings() {
     let controlsManager = Main.overview._overview._controls;
-    let settings = Util.getSettings('org.gnome.shell.extensions.vertical-overview');
-    let signals = [];
-    global.vertical_overview.settings = settings;
 
-    controlsManager.layoutManager.leftOffset = settings.get_int('left-offset');
-    signals.push(settings.connect('changed::left-offset', (v, e) => {
-        Main.overview._overview._controls.layoutManager.leftOffset = v.get_int(e);
-    }));
+    Util.bindSetting('left-offset', (settings, label) => {
+        controlsManager.layoutManager.leftOffset = settings.get_int(label);
+    });
 
-    controlsManager.layoutManager.rightOffset = settings.get_int('right-offset');
-    signals.push(settings.connect('changed::right-offset', (v, e) => {
-        Main.overview._overview._controls.layoutManager.rightOffset = v.get_int(e);
-    }));
+    Util.bindSetting('right-offset', (settings, label) => {
+        controlsManager.layoutManager.rightOffset = settings.get_int(label);
+    })
 
     let dash_max_height_id = null;
     let dash_max_height_scale = controlsManager.layoutManager.dashMaxHeightScale;
     let bind_dash_max_height = function () {
-        controlsManager.layoutManager.dashMaxHeightScale = settings.get_int('dash-max-height') / 100.0;
-        dash_max_height_id = settings.connect('changed::dash-max-height', (v, e) => {
-            controlsManager.layoutManager.dashMaxHeightScale = v.get_int(e) / 100.0;
+        dash_max_height_id = Util.bindSetting('dash-max-height', (settings, label) => {
+            controlsManager.layoutManager.dashMaxHeightScale = settings.get_int(label) / 100.0;
         });
-        signals.push(dash_max_height_id);
     }
 
-    if (settings.get_boolean('override-dash')) {
-        bind_dash_max_height();
-    }
-
-    signals.push(settings.connect('changed::override-dash', (v, e) => {
-        if (v.get_boolean(e)) {
+    Util.bindSetting('override-dash', (settings, label) => {
+        if (settings.get_boolean(label)) {
             DashOverride.override();
             if (dash_max_height_id == null)
                 bind_dash_max_height();
-        } else {
+        } else if (dash_max_height_id != null) {
             DashOverride.reset();
-            if (dash_max_height_id != null) {
-                settings.disconnect(dash_max_height_id);
-                signals.splice(signals.indexOf(dash_max_height_id), 1);
-                dash_max_height_id = null;
-                controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
-            }
+            settings.disconnect(dash_max_height_id);
+            signals.splice(signals.indexOf(dash_max_height_id), 1);
+            dash_max_height_id = null;
+            controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
         }
-    }));
+    });
 
-    signals.push(settings.connect('changed::hide-dash', (v, e) => {
-        if (v.get_boolean(e)) {
+    Util.bindSetting('hide-dash', (settings, label) => {
+        if (settings.get_boolean(label)) {
             DashOverride.hide();
         } else {
             DashOverride.show();
         }
-    }));
+    });
 
-    global.vertical_overview.signals = signals;
+    Util.bindSetting('scaling-workspace-background', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            WorkspaceOverride.scalingWorkspaceBackgroundOverride();
+        } else {
+            WorkspaceOverride.scalingWorkspaceBackgroundReset();
+        }
+    });
+
+    Util.bindSetting('static-background', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            WorkspaceOverride.staticBackgroundOverride();
+        } else {
+            WorkspaceOverride.staticBackgroundReset();
+        }
+    });
 }
 
 function rebind_keys(self) {
