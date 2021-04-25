@@ -23,10 +23,16 @@ function override() {
 
     global.vertical_overview.bgManagers = []
     for (var monitor of Main.layoutManager.monitors) {
-        global.vertical_overview.bgManagers.push(new Background.BackgroundManager({
+        let bgManager = new Background.BackgroundManager({
             monitorIndex: monitor.index,
             container: Main.layoutManager.overviewGroup,
-        }));
+        })
+
+        bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
+            bgManager.backgroundActor.opacity = Util.lerp(255, 127, Math.min(v.value));
+        });
+
+        global.vertical_overview.bgManagers.push(bgManager);
     }
 
     global.vertical_overview.GSFunctions['Workspace'] = _Util.overrideProto(Workspace.Workspace.prototype, WorkspaceOverride);
@@ -35,6 +41,7 @@ function override() {
 
 function reset() {
     for (var bg of global.vertical_overview.bgManagers) {
+        Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
         bg.destroy();
     }
     delete global.vertical_overview.bgManagers;
