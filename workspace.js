@@ -19,35 +19,50 @@ const Self = imports.misc.extensionUtils.getCurrentExtension();
 const _Util = Self.imports.util;
 const animateAllocation = imports.ui.workspace.animateAllocation;
 
-function override() {
+var staticBackgroundEnabled = false;
+function staticBackgroundOverride() {
+    if (!staticBackgroundEnabled) {
+        global.vertical_overview.bgManagers = []
+        for (var monitor of Main.layoutManager.monitors) {
+            let bgManager = new Background.BackgroundManager({
+                monitorIndex: monitor.index,
+                container: Main.layoutManager.overviewGroup,
+            })
 
-    global.vertical_overview.bgManagers = []
-    for (var monitor of Main.layoutManager.monitors) {
-        let bgManager = new Background.BackgroundManager({
-            monitorIndex: monitor.index,
-            container: Main.layoutManager.overviewGroup,
-        })
+            bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
+                bgManager.backgroundActor.opacity = Util.lerp(255, 127, Math.min(v.value));
+            });
 
-        bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-            bgManager.backgroundActor.opacity = Util.lerp(255, 127, Math.min(v.value));
-        });
-
-        global.vertical_overview.bgManagers.push(bgManager);
+            global.vertical_overview.bgManagers.push(bgManager);
+        }
+        staticBackgroundEnabled = true;
     }
-
-    global.vertical_overview.GSFunctions['Workspace'] = _Util.overrideProto(Workspace.Workspace.prototype, WorkspaceOverride);
-    global.vertical_overview.GSFunctions['WorkspaceLayout'] = _Util.overrideProto(Workspace.WorkspaceLayout.prototype, WorkspaceLayoutOverride);
 }
 
-function reset() {
-    for (var bg of global.vertical_overview.bgManagers) {
-        Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
-        bg.destroy();
+function staticBackgroundReset() {
+    if (staticBackgroundEnabled) {
+        for (var bg of global.vertical_overview.bgManagers) {
+            Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
+            bg.destroy();
+        }
+        delete global.vertical_overview.bgManagers;
+        staticBackgroundEnabled = false;
     }
-    delete global.vertical_overview.bgManagers;
+}
 
-    _Util.overrideProto(Workspace.Workspace.prototype, global.vertical_overview.GSFunctions['Workspace']);
-    _Util.overrideProto(Workspace.WorkspaceLayout.prototype, global.vertical_overview.GSFunctions['WorkspaceLayout']);
+var scalingWorkspaceBackgroundEnabled = false;
+function scalingWorkspaceBackgroundOverride() {
+    if (!scalingWorkspaceBackgroundEnabled) {
+        global.vertical_overview.GSFunctions['Workspace'] = _Util.overrideProto(Workspace.Workspace.prototype, WorkspaceOverride);
+        scalingWorkspaceBackgroundEnabled = true;
+    }
+}
+
+function scalingWorkspaceBackgroundReset() {
+    if (scalingWorkspaceBackgroundEnabled) {
+        _Util.overrideProto(Workspace.Workspace.prototype, global.vertical_overview.GSFunctions['Workspace']);
+        scalingWorkspaceBackgroundEnabled = false;
+    }
 }
 
 WorkspaceOverride = {
@@ -139,38 +154,4 @@ WorkspaceOverride = {
         this._delegate = this;
     },
 
-}
-
-WorkspaceLayoutOverride = {
-    _adjustSpacingAndPadding: function (rowSpacing, colSpacing, containerBox) {
-        if (this._sortedWindows.length === 0)
-            return [rowSpacing, colSpacing, containerBox];
-
-        // All of the overlays have the same chrome sizes,
-        // so just pick the first one.
-        const window = this._sortedWindows[0];
-
-        const [topOversize, bottomOversize] = window.chromeHeights();
-        const [leftOversize, rightOversize] = window.chromeWidths();
-
-        const oversize =
-            Math.max(topOversize, bottomOversize, leftOversize, rightOversize);
-
-        if (rowSpacing !== null)
-            rowSpacing += oversize;
-        if (colSpacing !== null)
-            colSpacing += oversize;
-
-        if (containerBox) {
-            const [topOverlap, bottomOverlap] = window.overlapHeights();
-            const overlap = Math.max(topOverlap, bottomOverlap);
-
-            containerBox.x1 += oversize;
-            containerBox.x2 -= oversize;
-            containerBox.y1 += oversize + overlap;
-            containerBox.y2 -= oversize + overlap;
-        }
-
-        return [rowSpacing, colSpacing, containerBox];
-    }
 }

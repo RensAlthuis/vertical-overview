@@ -187,5 +187,47 @@
                 </layout>
             </object>
         </child>
+        <child>
+            <object class="GtkLabel" id="static-background-label">
+                <property name="label">Show background as static image</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">6</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="static-background">
+                <property name="name">static-background</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">6</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="scaling-workspace-background-label">
+                <property name="label">Hide scaling workspace backgrounds in overview</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">7</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="scaling-workspace-background">
+                <property name="name">scaling-workspace-background</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">7</property>
+                </layout>
+            </object>
+        </child>
     </object>
 </interface>

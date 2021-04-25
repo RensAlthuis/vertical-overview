@@ -124,11 +124,11 @@ var ControlsManagerLayoutOverride = {
         // Dash
         if (!global.vertical_overview.settings.get_boolean('hide-dash')) {
             if (global.vertical_overview.settings.get_boolean('override-dash')) {
-                let dashHeight = (height - startY) * this.dashMaxHeightScale;
+                let dashHeight = height * this.dashMaxHeightScale;
                 this._dash.setMaxSize(leftOffset, dashHeight);
-                let [, maxDashWidth] = this._dash.get_preferred_width(height - startY);
+                let [, maxDashWidth] = this._dash.get_preferred_width(height);
                 childBox.set_origin(0, startY);
-                childBox.set_size(leftOffset, (height - startY));
+                childBox.set_size(leftOffset, height);
                 this._dash.allocate(childBox);
             } else {
                 const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
@@ -146,7 +146,7 @@ var ControlsManagerLayoutOverride = {
         // Workspace Thumbnails
         if (this._workspacesThumbnails.visible) {
             childBox.set_origin(width - rightOffset, startY);
-            childBox.set_size(rightOffset, height - startY);
+            childBox.set_size(rightOffset, height);
             this._workspacesThumbnails.allocate(childBox);
         }
 

@@ -71,3 +71,14 @@ function overrideProto(proto, overrides) {
     }
     return backup;
 }
+
+function bindSetting(label, callback, executeOnBind = true) {
+    if (!global.vertical_overview.settings) global.vertical_overview.settings = getSettings('org.gnome.shell.extensions.vertical-overview');
+    if (!global.vertical_overview.signals) global.vertical_overview.signals = [];
+
+    if (executeOnBind) callback(global.vertical_overview.settings, label);
+
+    let signal = global.vertical_overview.settings.connect('changed::' + label, callback);
+    global.vertical_overview.signals.push(signal);
+    return signal;
+}
