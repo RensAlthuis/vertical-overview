@@ -44,7 +44,6 @@ function disable() {
     OverviewControlsOverride.reset();
     WorkspacesViewOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
-    WorkspaceOverride.reset()
     Gestures.reset();
 
     if (global.vertical_overview.settings.get_boolean('override-dash'))
