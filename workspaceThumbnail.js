@@ -29,11 +29,13 @@ var MUTTER_SCHEMA = 'org.gnome.mutter';
 function override() {
     global.vertical_overview.GSFunctions['ThumbnailsBox'] = Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, ThumbnailsBoxOverride);
     global.vertical_overview.GSFunctions['WorkspaceThumbnail'] = Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, WorkspaceThumbnailOverride);
+    Main.overview._overview._controls._thumbnailsBox.x_align = Clutter.ActorAlign.FILL;
 }
 
 function reset() {
     Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
     Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, global.vertical_overview.GSFunctions['WorkspaceThumbnail']);
+    Main.overview._overview._controls._thumbnailsBox.x_align = Clutter.ActorAlign.CENTER;
 }
 
 var ThumbnailsBoxOverride = {

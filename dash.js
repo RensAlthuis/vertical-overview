@@ -31,7 +31,7 @@ function override() {
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
-    dash.x_align = Clutter.ActorAlign.START
+    dash.x_align = Clutter.ActorAlign.START;
     dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0) //move showAppbutton on top;
 
     let sizerBox = dash._background.get_children()[0];
@@ -56,6 +56,7 @@ function reset() {
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
     dash._dashContainer.y_expand = true;
     dash._dashContainer.x_expand = false;
+    dash.x_align = Clutter.ActorAlign.CENTER;
 
     dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 
