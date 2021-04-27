@@ -42,8 +42,12 @@ var WorkspacesViewOverride = {
     },
 
     _getSpacing(box, fitMode, vertical) {
-        const [, height] = box.get_size();
-
+        const [width, height] = box.get_size();
+        const [workspace] = this._workspaces;
+        var [, workspaceHeight] = workspace.get_preferred_height(width);
+        if (workspaceHeight > height) {
+            workspaceHeight = height;
+        }
         let total_height = global.screen_height;
         let availableSpace = ((total_height - height) / 2) - (global.vertical_overview.workspacePeek || 0);
         const spacing = (availableSpace) * (1 - fitMode);
