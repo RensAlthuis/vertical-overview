@@ -49,7 +49,7 @@ var WorkspacesViewOverride = {
             workspaceHeight = height;
         }
         let total_height = global.screen_height;
-        let availableSpace = ((total_height - height) / 2) - (global.vertical_overview.workspacePeek || 0);
+        let availableSpace = ((total_height - workspaceHeight) / 2) - (global.vertical_overview.workspacePeek || 0);
         const spacing = (availableSpace) * (1 - fitMode);
         const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
 
