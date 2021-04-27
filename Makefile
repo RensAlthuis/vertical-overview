@@ -1,6 +1,6 @@
 build: clean
 	glib-compile-schemas ./schemas
-	zip -r vertical-overview@RensAlthuis.github.com *
+	zip -r vertical-overview@RensAlthuis.github.com * -x Makefile
 	mkdir _build
 	mv vertical-overview@RensAlthuis.github.com _build/
 
