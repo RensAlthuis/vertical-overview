@@ -43,6 +43,8 @@ function disable() {
 
     OverviewControlsOverride.reset();
     WorkspacesViewOverrides.reset();
+    WorkspaceOverride.staticBackgroundReset();
+    WorkspaceOverride.scalingWorkspaceBackgroundReset();
     WorkspaceThumbnailOverrides.reset();
     Gestures.reset();
 
@@ -89,7 +91,7 @@ function bindSettings() {
         } else if (dash_max_height_id != null) {
             DashOverride.reset();
             settings.disconnect(dash_max_height_id);
-            signals.splice(signals.indexOf(dash_max_height_id), 1);
+            global.vertical_overview.signals.splice(global.vertical_overview.signals.indexOf(dash_max_height_id), 1);
             dash_max_height_id = null;
             controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
         }
@@ -117,6 +119,10 @@ function bindSettings() {
         } else {
             WorkspaceOverride.staticBackgroundReset();
         }
+    });
+
+    Util.bindSetting('workspace-peek-distance', (settings, label) => {
+        global.vertical_overview.workspacePeek = settings.get_int(label);
     });
 }
 

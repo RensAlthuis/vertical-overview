@@ -42,20 +42,42 @@ var WorkspacesViewOverride = {
     },
 
     _getSpacing(box, fitMode, vertical) {
-        const [width, height] = box.get_size();
-        const [workspace] = this._workspaces;
+        const [, height] = box.get_size();
 
-        overviewHeight = Main.overview._overview.height;
-        let availableSpace;
-        let [, workspaceSize] = workspace.get_preferred_height(width);
-        availableSpace = (overviewHeight - workspaceSize) / 2;
-
-
+        let total_height = global.screen_height;
+        let availableSpace = ((total_height - height) / 2) - (global.vertical_overview.workspacePeek || 0);
         const spacing = (availableSpace) * (1 - fitMode);
         const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
 
         return Math.max(spacing * scaleFactor, 0);
     },
+
+    _getFirstFitSingleWorkspaceBox(box, spacing, vertical) {
+        const [width, height] = box.get_size();
+        const [workspace] = this._workspaces;
+
+        const rtl = this.text_direction === Clutter.TextDirection.RTL;
+        const adj = this._scrollAdjustment;
+        const currentWorkspace = vertical || !rtl
+            ? adj.value : adj.upper - adj.value - 1;
+
+        // Single fit mode implies centered too
+        let [x1, y1] = box.get_origin();
+        var [, workspaceHeight] = workspace.get_preferred_height(width);
+        if (workspaceHeight > height) {
+            workspaceHeight = height;
+        }
+
+        y1 += (height - workspaceHeight) / 2;
+        y1 -= currentWorkspace * (workspaceHeight + spacing);
+
+        const fitSingleBox = new Clutter.ActorBox({ x1, y1 });
+
+        fitSingleBox.set_size(width, workspaceHeight);
+
+        return fitSingleBox;
+    }
+
 
 }
 
