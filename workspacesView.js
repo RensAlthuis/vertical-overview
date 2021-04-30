@@ -9,6 +9,7 @@ const SECONDARY_WORKSPACE_SCALE = 0.70;
 const OverviewControls = imports.ui.overviewControls;
 const WorkspacesView = imports.ui.workspacesView;
 const Main = imports.ui.main;
+const Gio = imports.gi.Gio;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
@@ -114,8 +115,10 @@ var SecondaryMonitorDisplayOverride = {
         const [width, height] = contentBox.get_size();
         const { expandFraction } = this._thumbnails;
         const spacing = themeNode.get_length('spacing') * expandFraction;
-        const padding =
-            Math.round((1 - SECONDARY_WORKSPACE_SCALE) * height / 2);
+        let padding = 0;
+        if (Gio.Settings.new('org.gnome.mutter').get_boolean('workspaces-only-on-primary')) {
+            padding = Math.round((1 - SECONDARY_WORKSPACE_SCALE) * height / 2);
+        }
 
         const scale = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
         const leftOffset = Main.overview._overview._controls.layoutManager.leftOffset * scale;
