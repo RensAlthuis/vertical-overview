@@ -32,7 +32,6 @@ function override() {
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
     dash.x_align = Clutter.ActorAlign.START;
-    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0) //move showAppbutton on top;
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
@@ -58,6 +57,8 @@ function reset() {
     dash._dashContainer.x_expand = false;
     dash.x_align = Clutter.ActorAlign.CENTER;
 
+    apps_to_bottom();
+
     dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 
     let sizerBox = dash._background.get_children()[0];
@@ -75,6 +76,18 @@ function reset() {
     dash._box.remove_all_children();
     dash._separator = null;
     dash._queueRedisplay();
+}
+
+function apps_to_top() {
+    let dash = Main.overview._overview._controls.dash;
+    dash._dashContainer.remove_child(dash._showAppsIcon);
+    dash._dashContainer.insert_child_at_index(dash._showAppsIcon, 0);
+}
+
+function apps_to_bottom() {
+    let dash = Main.overview._overview._controls.dash;
+    dash._dashContainer.remove_child(dash._showAppsIcon);
+    dash._dashContainer.add_child(dash._showAppsIcon);
 }
 
 function show() {
@@ -389,6 +402,10 @@ var DashOverride = {
                 newIconSize = baseIconSizes[i];
         }
 
+	if (dashMaxIconSize < newIconSize) {
+	    newIconSize = dashMaxIconSize;
+	}
+
         if (newIconSize == this.iconSize)
             return;
 
@@ -438,10 +455,12 @@ var DashOverride = {
     _createAppItem: function (app) {
         let appIcon = new DashIcon(app);
 
-        let indicator = appIcon._dot;
-        indicator.x_align = Clutter.ActorAlign.START;
-        indicator.y_align = null;
-
+	if (customRunIndicatorEnabled) {
+	    let indicator = appIcon._dot;
+            indicator.x_align = Clutter.ActorAlign.START;
+            indicator.y_align = null;
+	}
+	
         appIcon.connect('menu-state-changed',
             (o, opened) => {
                 this._itemMenuStateChanged(item, opened);
