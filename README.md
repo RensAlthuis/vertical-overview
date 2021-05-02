@@ -3,6 +3,9 @@
 ## Description
 Gnome has had vertically stacked workspaces for a long time. The Gnome 40 update unfortunately made the switch to a horizontal layout. A choice that many Gnome users disagree with. This extension Aims to replace the new Gnome overview with something that resembles the old style. 
 
+## Preview image
+![vertical-overview](https://user-images.githubusercontent.com/12956267/116825963-f0977f00-ab91-11eb-953a-ea891389ddf9.gif)
+
 ## Installation:
 You install it through ![Gnome Extensions](https://extensions.gnome.org/extension/4144/vertical-overview/).
 
@@ -24,7 +27,6 @@ Then enable the extension in "Extensions" application or via command:
 gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
 
-![image](https://user-images.githubusercontent.com/12956267/116825347-3e5eb800-ab8f-11eb-8d3d-1819be34e421.png)
 
 
 ## Donations
