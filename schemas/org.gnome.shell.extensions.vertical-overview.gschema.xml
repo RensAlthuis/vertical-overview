@@ -3,17 +3,32 @@
     <schema path="/org/gnome/shell/extensions/vertical-overview/" id="org.gnome.shell.extensions.vertical-overview">
         <key type="i" name="left-offset">
             <default>200</default>
-            <summary>distance between left side of the monitor and the workspaces display</summary>
+            <summary>Distance between left side of the monitor and the workspaces display</summary>
             <description></description>
         </key>
         <key type="i" name="right-offset">
             <default>200</default>
-            <summary>distance between right side of the monitor and the workspaces display</summary>
+            <summary>Distance between right side of the monitor and the workspaces display</summary>
             <description></description>
         </key>
         <key type="i" name="dash-max-height">
             <default>80</default>
             <summary>Maximum height of the dash</summary>
+            <description></description>
+        </key>
+        <key type="b" name="show-apps-on-top">
+            <default>false</default>
+            <summary>Move show applications button to the top of dash</summary>
+            <description></description>
+        </key>
+        <key type="i" name="dash-max-icon-size">
+            <default>64</default>
+            <summary>Maximum icon size on dash</summary>
+            <description></description>
+        </key>
+        <key type="b" name="custom-run-indicator">
+            <default>false</default>
+            <summary>Changes run indicator from dot to bar on the left side of icons</summary>
             <description></description>
         </key>
         <key type="b" name="override-dash">

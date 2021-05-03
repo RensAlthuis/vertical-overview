@@ -73,7 +73,7 @@ function bindSettings() {
 
     Util.bindSetting('right-offset', (settings, label) => {
         controlsManager.layoutManager.rightOffset = settings.get_int(label);
-    })
+    });
 
     let dash_max_height_id = null;
     let dash_max_height_scale = controlsManager.layoutManager.dashMaxHeightScale;
@@ -81,19 +81,50 @@ function bindSettings() {
         dash_max_height_id = Util.bindSetting('dash-max-height', (settings, label) => {
             controlsManager.layoutManager.dashMaxHeightScale = settings.get_int(label) / 100.0;
         });
-    }
+    };
 
     Util.bindSetting('override-dash', (settings, label) => {
         if (settings.get_boolean(label)) {
             DashOverride.override();
             if (dash_max_height_id == null)
                 bind_dash_max_height();
+            DashOverride.overridden = true;
         } else if (dash_max_height_id != null) {
             DashOverride.reset();
             settings.disconnect(dash_max_height_id);
             global.vertical_overview.signals.splice(global.vertical_overview.signals.indexOf(dash_max_height_id), 1);
             dash_max_height_id = null;
             controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
+            DashOverride.overridden = false;
+        }
+    });
+
+    Util.bindSetting('show-apps-on-top', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            DashOverride.apps_to_top();
+        } else {
+            DashOverride.apps_to_bottom();
+        }
+    });
+
+    Util.bindSetting('dash-max-icon-size', (settings, label) => {
+        DashOverride.dashMaxIconSize = settings.get_int(label);
+        if (DashOverride.overridden) {
+            DashOverride.override();
+        }
+    });
+
+    Util.bindSetting('custom-run-indicator', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            DashOverride.customRunIndicatorEnabled = true;
+            if (DashOverride.overridden) {
+                DashOverride.override();
+            }
+        } else {
+            DashOverride.customRunIndicatorEnabled = false;
+            if (DashOverride.overridden) {
+                DashOverride.override();
+            }
         }
     });
 
@@ -129,7 +160,7 @@ function bindSettings() {
 function rebind_keys(self) {
     Main.wm.removeKeybinding('toggle-application-view');
     Main.wm.removeKeybinding('shift-overview-up');
-    Main.wm.removeKeybinding('shift-overview-down')
+    Main.wm.removeKeybinding('shift-overview-down');
     Main.wm.addKeybinding(
         'toggle-application-view',
         new Gio.Settings({ schema_id: WindowManager.SHELL_KEYBINDINGS_SCHEMA }),

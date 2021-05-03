@@ -17,6 +17,12 @@
         <property name="step_increment">1</property>
         <property name="page_increment">5</property>
     </object>
+    <object class="GtkAdjustment" id="dash-max-icon-size-adjustment">
+        <property name="lower">16</property>
+        <property name="upper">64</property>
+        <property name="step_increment">1</property>
+        <property name="page_increment">5</property>
+    </object>
     <object class="GtkAdjustment" id="thumbnails-position-adjustment">
         <property name="lower">0</property>
         <property name="upper">100</property>
@@ -114,7 +120,7 @@
         </child>
         <child>
             <object class="GtkLabel" id="override-dash-label">
-                <property name="label">override dash</property>
+                <property name="label">Override dash</property>
                 <layout>
                     <property name="column">0</property>
                     <property name="row">3</property>
@@ -135,10 +141,81 @@
         </child>
         <child>
             <object class="GtkLabel" id="override-dash-description">
-                <property name="label">disable if you use an extension that replaces the dash</property>
+                <property name="label">Disable if you use an extension that replaces the dash</property>
                 <layout>
                     <property name="column">2</property>
                     <property name="row">3</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="show-apps-on-top-label">
+                <property name="label">Move show applications button to the top of dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="show-apps-on-top">
+                <property name="name">show-apps-on-top</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">4</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="dash-max-icon-size-label">
+                <property name="label">Maximum icon size on dash</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">5</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSpinButton" id="dash-max-icon-size">
+                <property name="name">dash-max-icon-size</property>
+                <property name="adjustment">dash-max-icon-size-adjustment</property>
+                <signal name="value-changed" handler="_onIntValueChanged" />
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">5</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="dash-max-icon-size-description">
+                <property name="label">Default sizes: 16, 22, 24, 32, 48, 64</property>
+                <layout>
+                    <property name="column">2</property>
+                    <property name="row">5</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkLabel" id="custom-run-indicator-label">
+                <property name="label">Change run indicator from dot to bar on the left side of icons</property>
+                <layout>
+                    <property name="column">0</property>
+                    <property name="row">6</property>
+                </layout>
+            </object>
+        </child>
+        <child>
+            <object class="GtkSwitch" id="custom-run-indicator">
+                <property name="name">custom-run-indicator</property>
+                <signal name="notify::active" handler="_onBoolValueChanged" />
+                <property name='halign'>GTK_ALIGN_START</property>
+                <property name='valign'>GTK_ALIGN_CENTER</property>
+                <layout>
+                    <property name="column">1</property>
+                    <property name="row">6</property>
                 </layout>
             </object>
         </child>
@@ -147,7 +224,7 @@
                 <property name="label">hide dash</property>
                 <layout>
                     <property name="column">0</property>
-                    <property name="row">4</property>
+                    <property name="row">7</property>
                 </layout>
             </object>
         </child>
@@ -159,7 +236,7 @@
                 <property name='valign'>GTK_ALIGN_CENTER</property>
                 <layout>
                     <property name="column">1</property>
-                    <property name="row">4</property>
+                    <property name="row">7</property>
                 </layout>
             </object>
         </child>
@@ -168,7 +245,7 @@
                 <property name="label">Thumbnail position</property>
                 <layout>
                     <property name="column">0</property>
-                    <property name="row">5</property>
+                    <property name="row">8</property>
                 </layout>
             </object>
         </child>
@@ -179,7 +256,7 @@
                 <signal name="value-changed" handler="_onIntValueChanged" />
                 <layout>
                     <property name="column">1</property>
-                    <property name="row">5</property>
+                    <property name="row">8</property>
                 </layout>
             </object>
         </child>
@@ -189,7 +266,7 @@
 (0 = top, 50 = centered, 100 = end)</property>
                 <layout>
                     <property name="column">2</property>
-                    <property name="row">5</property>
+                    <property name="row">8</property>
                 </layout>
             </object>
         </child>
@@ -198,7 +275,7 @@
                 <property name="label">Show background as static image</property>
                 <layout>
                     <property name="column">0</property>
-                    <property name="row">6</property>
+                    <property name="row">9</property>
                 </layout>
             </object>
         </child>
@@ -210,7 +287,7 @@
                 <property name='valign'>GTK_ALIGN_CENTER</property>
                 <layout>
                     <property name="column">1</property>
-                    <property name="row">6</property>
+                    <property name="row">9</property>
                 </layout>
             </object>
         </child>
@@ -219,7 +296,7 @@
                 <property name="label">Hide scaling workspace backgrounds in overview</property>
                 <layout>
                     <property name="column">0</property>
-                    <property name="row">7</property>
+                    <property name="row">10</property>
                 </layout>
             </object>
         </child>
@@ -231,7 +308,7 @@
                 <property name='valign'>GTK_ALIGN_CENTER</property>
                 <layout>
                     <property name="column">1</property>
-                    <property name="row">7</property>
+                    <property name="row">10</property>
                 </layout>
             </object>
         </child>
@@ -240,7 +317,7 @@
                 <property name="label">Workspace peek distance</property>
                 <layout>
                     <property name="column">0</property>
-                    <property name="row">8</property>
+                    <property name="row">11</property>
                 </layout>
             </object>
         </child>
@@ -251,7 +328,7 @@
                 <signal name="value-changed" handler="_onIntValueChanged" />
                 <layout>
                     <property name="column">1</property>
-                    <property name="row">8</property>
+                    <property name="row">11</property>
                 </layout>
             </object>
         </child>
