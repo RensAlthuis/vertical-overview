@@ -27,6 +27,12 @@ Then enable the extension in "Extensions" application or via command:
 gnome-extensions enable vertical-overview@RensAlthuis.github.com
 ```
 
+## FAQ
+#### **How do I get back `Super + Page Up/Down` to switch workspaces?**
+
+@romgrk and @m2-farzan have got you covered Until I get around to adding this:
+https://github.com/RensAlthuis/vertical-overview/issues/7#issuecomment-816054137
+
 
 
 ## Donations
