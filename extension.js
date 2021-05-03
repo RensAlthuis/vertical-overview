@@ -88,44 +88,44 @@ function bindSettings() {
             DashOverride.override();
             if (dash_max_height_id == null)
                 bind_dash_max_height();
-	    DashOverride.overridden = true;
+            DashOverride.overridden = true;
         } else if (dash_max_height_id != null) {
             DashOverride.reset();
             settings.disconnect(dash_max_height_id);
             global.vertical_overview.signals.splice(global.vertical_overview.signals.indexOf(dash_max_height_id), 1);
             dash_max_height_id = null;
             controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
-	    DashOverride.overridden = false;
+            DashOverride.overridden = false;
         }
     });
 
     Util.bindSetting('show-apps-on-top', (settings, label) => {
-	if (settings.get_boolean(label)) {
-	    DashOverride.apps_to_top();
-	} else {
-	    DashOverride.apps_to_bottom();
-	}
+        if (settings.get_boolean(label)) {
+            DashOverride.apps_to_top();
+        } else {
+            DashOverride.apps_to_bottom();
+        }
     });
 
     Util.bindSetting('dash-max-icon-size', (settings, label) => {
-	DashOverride.dashMaxIconSize = settings.get_int(label);
-	if (DashOverride.overridden) {
-	    DashOverride.override();
-	}
+        DashOverride.dashMaxIconSize = settings.get_int(label);
+        if (DashOverride.overridden) {
+            DashOverride.override();
+        }
     });
 
     Util.bindSetting('custom-run-indicator', (settings, label) => {
-	if (settings.get_boolean(label)) {
-	    DashOverride.customRunIndicatorEnabled = true;
-	    if (DashOverride.overridden) {
-		DashOverride.override();
-	    }
-	} else {
-	    DashOverride.customRunIndicatorEnabled = false;
-	    if (DashOverride.overridden) {
-		DashOverride.override();
-	    }
-	}
+        if (settings.get_boolean(label)) {
+            DashOverride.customRunIndicatorEnabled = true;
+            if (DashOverride.overridden) {
+                DashOverride.override();
+            }
+        } else {
+            DashOverride.customRunIndicatorEnabled = false;
+            if (DashOverride.overridden) {
+                DashOverride.override();
+            }
+        }
     });
 
     Util.bindSetting('hide-dash', (settings, label) => {
