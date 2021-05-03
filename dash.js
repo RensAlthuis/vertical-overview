@@ -80,12 +80,12 @@ function reset() {
 
 function apps_to_top() {
     let dash = Main.overview._overview._controls.dash;
-    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
+    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0);
 }
 
 function apps_to_bottom() {
     let dash = Main.overview._overview._controls.dash;
-    dash._dashContainer.set_child_at_index(dash._showAppsIcon,0);
+    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
 }
 
 function show() {
