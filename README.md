@@ -7,7 +7,7 @@ Gnome has had vertically stacked workspaces for a long time. The Gnome 40 update
 ![vertical-overview](https://user-images.githubusercontent.com/12956267/116825963-f0977f00-ab91-11eb-953a-ea891389ddf9.gif)
 
 ## Installation:
-You install it through ![Gnome Extensions](https://extensions.gnome.org/extension/4144/vertical-overview/).
+You install it through [Gnome Extensions](https://extensions.gnome.org/extension/4144/vertical-overview/).
 
 Or you can install it manually:
 ```
