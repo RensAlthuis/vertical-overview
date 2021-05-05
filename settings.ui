@@ -35,301 +35,457 @@
         <property name="step_increment">1</property>
         <property name="page_increment">5</property>
     </object>
-    <object class="GtkGrid" id="main_widget">
-        <property name="margin-start">16</property>
-        <property name="margin-top">16</property>
-        <property name="row-spacing">8</property>
-        <property name="column-spacing">24</property>
+    <object class="GtkBox" id="main_widget">
+        <property name="spacing">10</property>
+        <property name="margin-top">10</property>
+        <property name="margin-bottom">10</property>
+        <property name="margin-start">10</property>
+        <property name="margin-end">10</property>
+        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
         <child>
-            <object class="GtkLabel" id="left-offset-label">
-                <property name="label">Left offset</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">0</property>
-                </layout>
+            <object class="GtkFrame" id="workspace-frame">
+                <child>
+                    <object class="GtkGrid" id="workspace-grid">
+                        <property name="row-spacing">8</property>
+                        <property name="column-spacing">24</property>
+                        <property name="margin-top">8</property>
+                        <property name="margin-bottom">8</property>
+                        <property name="margin-start">8</property>
+                        <property name="margin-end">8</property>
+                        <property name="vexpand">true</property>
+                        <child>
+                            <object class="GtkBox" id="left-offset-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <property name="hexpand">true</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">0</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="left-offset-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Left offset</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="left-offset-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Distance in pixels from left of screen to workspaces display</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="left-offset">
+                                <property name="name">left-offset</property>
+                                <property name="adjustment">left-offset-adjustment</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">0</property>
+                                </layout>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="right-offset-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">1</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="right-offset-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Right offset</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="right-offset-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Distance in pixels from right of screen to workspaces display</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="right-offset">
+                                <property name="name">right-offset</property>
+                                <property name="adjustment">right-offset-adjustment</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">1</property>
+                                </layout>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="thumbnails-position-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">2</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="thumbnails-position-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Workspace thumbnail position</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="thumbnails-position-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Center of gravity for thumbnail alignment (0 = top, 50 = centered, 100 = end)</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="thumbnails-position">
+                                <property name="name">thumbnails-position</property>
+                                <property name="adjustment">thumbnails-position-adjustment</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">2</property>
+                                </layout>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="static-background-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">3</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="static-background-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Static background</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="static-background-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Show background as static image</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="static-background">
+                                <property name="name">static-background</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">3</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="scaling-workspace-background-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">4</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="scaling-workspace-background-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Hide scaling workspaces</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="scaling-workspace-background-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Hide scaling workspace backgrounds in overview</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="scaling-workspace-background">
+                                <property name="name">scaling-workspace-background</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">4</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="workspace-peek-distance-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">5</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="workspace-peek-distance-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Workspace peek distance</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="workspace-peek-distance-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Controls how much of the next and previous workspace are visible</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="workspace-peek-distance">
+                                <property name="name">workspace-peek-distance</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">5</property>
+                                </layout>
+                                <property name="adjustment">workspace-peek-distance-adjustment</property>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                    </object>
+                </child>
             </object>
         </child>
         <child>
-            <object class="GtkSpinButton" id="left-offset">
-                <property name="name">left-offset</property>
-                <property name="adjustment">left-offset-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">0</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="left-offset-description">
-                <property name="label">Distance in pixels from left of screen to workspaces display</property>
-                <layout>
-                    <property name="column">2</property>
-                    <property name="row">0</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="right-offset-label">
-                <property name="label">Right offset</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">1</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSpinButton" id="right-offset">
-                <property name="name">right-offset</property>
-                <property name="adjustment">right-offset-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">1</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="right-offset-description">
-                <property name="label">Distance in pixels from right of screen to workspaces display</property>
-                <layout>
-                    <property name="column">2</property>
-                    <property name="row">1</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="dash-max-height-label">
-                <property name="label">Dash Maximum Height %</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">2</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSpinButton" id="dash-max-height">
-                <property name="name">dash-max-height</property>
-                <property name="adjustment">dash-max-height-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">2</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="override-dash-label">
-                <property name="label">Override dash</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">3</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="override-dash">
-                <property name="name">override-dash</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">3</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="override-dash-description">
-                <property name="label">Disable if you use an extension that replaces the dash</property>
-                <layout>
-                    <property name="column">2</property>
-                    <property name="row">3</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="show-apps-on-top-label">
-                <property name="label">Move show applications button to the top of dash</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">4</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="show-apps-on-top">
-                <property name="name">show-apps-on-top</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">4</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="dash-max-icon-size-label">
-                <property name="label">Maximum icon size on dash</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">5</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSpinButton" id="dash-max-icon-size">
-                <property name="name">dash-max-icon-size</property>
-                <property name="adjustment">dash-max-icon-size-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">5</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="dash-max-icon-size-description">
-                <property name="label">Default sizes: 16, 22, 24, 32, 48, 64</property>
-                <layout>
-                    <property name="column">2</property>
-                    <property name="row">5</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="custom-run-indicator-label">
-                <property name="label">Change run indicator from dot to bar on the left side of icons</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">6</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="custom-run-indicator">
-                <property name="name">custom-run-indicator</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">6</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="hide-dash-label">
-                <property name="label">hide dash</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">7</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="hide-dash">
-                <property name="name">hide-dash</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">7</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="thumbnails-position-label">
-                <property name="label">Thumbnail position</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">8</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSpinButton" id="thumbnails-position">
-                <property name="name">thumbnails-position</property>
-                <property name="adjustment">thumbnails-position-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">8</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="thumbnails-position-description">
-                <property name="label">Center of gravity for thumbnail alignment
-(0 = top, 50 = centered, 100 = end)</property>
-                <layout>
-                    <property name="column">2</property>
-                    <property name="row">8</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="static-background-label">
-                <property name="label">Show background as static image</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">9</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="static-background">
-                <property name="name">static-background</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">9</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="scaling-workspace-background-label">
-                <property name="label">Hide scaling workspace backgrounds in overview</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">10</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSwitch" id="scaling-workspace-background">
-                <property name="name">scaling-workspace-background</property>
-                <signal name="notify::active" handler="_onBoolValueChanged" />
-                <property name='halign'>GTK_ALIGN_START</property>
-                <property name='valign'>GTK_ALIGN_CENTER</property>
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">10</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkLabel" id="workspace-peek-distance-label">
-                <property name="label">Workspace peek distance</property>
-                <layout>
-                    <property name="column">0</property>
-                    <property name="row">11</property>
-                </layout>
-            </object>
-        </child>
-        <child>
-            <object class="GtkSpinButton" id="workspace-peek-distance">
-                <property name="name">workspace-peek-distance</property>
-                <property name="adjustment">workspace-peek-distance-adjustment</property>
-                <signal name="value-changed" handler="_onIntValueChanged" />
-                <layout>
-                    <property name="column">1</property>
-                    <property name="row">11</property>
-                </layout>
+            <object class="GtkFrame" id="dash-frame">
+                <child>
+                    <object class="GtkGrid" id="dash-grid">
+                        <property name="row-spacing">8</property>
+                        <property name="column-spacing">24</property>
+                        <property name="margin-top">8</property>
+                        <property name="margin-bottom">8</property>
+                        <property name="margin-start">8</property>
+                        <property name="margin-end">8</property>
+                        <property name="vexpand">true</property>
+                        <child>
+                            <object class="GtkBox" id="dash-max-height-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <property name="hexpand">true</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">0</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="dash-max-height-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Dash maximum height</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="dash-max-height-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Maximum allowed height for the dash in % of screen height</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="dash-max-height">
+                                <property name="name">dash-max-height</property>
+                                <property name="adjustment">dash-max-height-adjustment</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">0</property>
+                                </layout>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="override-dash-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">1</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="override-dash-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Override dash</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="override-dash-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Disable if you use an extension that replaces the dash</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="override-dash">
+                                <property name="name">override-dash</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">1</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="show-apps-on-top-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">2</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="show-apps-on-top-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Show apps on top</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="show-apps-on-top-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Move show applications button to the top of dash</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="show-apps-on-top">
+                                <property name="name">show-apps-on-top</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">2</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="dash-max-icon-size-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">3</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="dash-max-icon-size-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Maximum icon size on dash</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="dash-max-icon-size-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Default sizes: 16, 22, 24, 32, 48, 64</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSpinButton" id="dash-max-icon-size">
+                                <property name="name">dash-max-icon-size</property>
+                                <property name="adjustment">dash-max-icon-size-adjustment</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">3</property>
+                                </layout>
+                                <signal name="value-changed" handler="_onIntValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="custom-run-indicator-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">4</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="custom-run-indicator-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Custom run indicator</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="custom-run-indicator-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Change run indicator from dot to bar on the left side of icons</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="custom-run-indicator">
+                                <property name="name">custom-run-indicator</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">4</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox" id="hide-dash-label-box">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <layout>
+                                    <property name="column">0</property>
+                                    <property name="row">5</property>
+                                </layout>
+                                <child>
+                                    <object class="GtkLabel" id="hide-dash-label">
+                                        <property name="css-classes">body</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Hide dash</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkLabel" id="hide-dash-description">
+                                        <property name="css-classes">caption</property>
+                                        <property name="halign">GTK_ALIGN_START</property>
+                                        <property name="label">Completely disables the dash</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkSwitch" id="hide-dash">
+                                <property name="name">hide-dash</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="valign">GTK_ALIGN_CENTER</property>
+                                <layout>
+                                    <property name="column">1</property>
+                                    <property name="row">5</property>
+                                </layout>
+                                <signal name="notify::active" handler="_onBoolValueChanged" />
+                            </object>
+                        </child>
+                    </object>
+                </child>
             </object>
         </child>
     </object>
