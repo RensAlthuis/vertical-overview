@@ -106,6 +106,7 @@ const TouchpadSwipeGesture = GObject.registerClass({
 }, class TouchpadSwipeGesture extends GObject.Object {
     _init(allowedModes, fingers) {
         super._init();
+        this.type = GestureType.TOUCHPAD;
         this.fingers = fingers;
         this._allowedModes = allowedModes;
         this._state = TouchpadState.NONE;
@@ -233,13 +234,14 @@ const TouchSwipeGesture = GObject.registerClass({
 }, class TouchSwipeGesture extends Clutter.GestureAction {
     _init(allowedModes, nTouchPoints, thresholdTriggerEdge) {
         super._init();
+        this.type = nTouchPoints === 1 ? GestureType.DRAG : GestureType.TOUCH;
         this.set_n_touch_points(nTouchPoints);
         this.set_threshold_trigger_edge(thresholdTriggerEdge);
 
         this._allowedModes = allowedModes;
         this._distance = global.screen_height;
 
-        global.display.connect('grab-op-begin', () => {
+        this.grabOpBeginSignal = global.display.connect('grab-op-begin', () => {
             this.cancel();
         });
 
@@ -311,6 +313,13 @@ const TouchSwipeGesture = GObject.registerClass({
 
         this.emit('cancel', time, this._distance);
     }
+
+    destroy() {
+        if(this.grabOpBeginSignal) {
+            global.display.disconnect(this.grabOpBeginSignal);
+            delete this.grabOpBeginSignal;
+        }
+    }
 });
 
 const ScrollGesture = GObject.registerClass({
@@ -332,11 +341,13 @@ const ScrollGesture = GObject.registerClass({
 }, class ScrollGesture extends GObject.Object {
     _init(actor, allowedModes) {
         super._init();
+        this.type = GestureType.SCROLL;
         this._allowedModes = allowedModes;
         this._began = false;
         this._enabled = true;
+        this.actor = actor;
 
-        actor.connect('scroll-event', this._handleEvent.bind(this));
+        this.scrollEventSignal = actor.connect('scroll-event', this._handleEvent.bind(this));
     }
 
     get enabled() {
@@ -404,6 +415,13 @@ const ScrollGesture = GObject.registerClass({
 
         return Clutter.EVENT_STOP;
     }
+
+    destroy() {
+        if(this.scrollEventSignal) {
+            this.actor.disconnect(this.scrollEventSignal)
+            delete this.scrollEventSignal;
+        }
+    }
 });
 
 // USAGE:
@@ -467,7 +485,8 @@ var SwipeTracker = GObject.registerClass({
         this._enabled = true;
         this._distance = global.screen_height;
         this._history = new EventHistory();
-        this.gestures = [];
+        this.gestures = {};
+        this.gestureIdCounter = 0;
         this._reset();
     }
 
@@ -521,11 +540,26 @@ var SwipeTracker = GObject.registerClass({
         }
 
         //return index of each new gesture
-        return gestures.map((gesture) => this.gestures.push(gesture) - 1);
+        return gestures.map((gesture) => {
+            let key = this.gestureIdCounter;
+            this.gestures[key] = gesture;
+            this.gestureIdCounter++;
+            return key;
+        });
     }
 
     disconnectGesture(id) {
-
+        let gesture = this.gestures[id];
+        switch(gesture.type) {
+            case GestureType.TOUCH:
+                global.stage.remove_action(gesture.gesture);
+                break;
+            case GestureType.DRAG:
+                gesture.actor.remove_action(gesture.gesture);
+                break;
+        }
+        gesture.gesture.destroy();
+        delete this.gestures[id];
     }
 
     /**
@@ -539,8 +573,9 @@ var SwipeTracker = GObject.registerClass({
     canHandleScrollEvent(scrollEvent) {
         if(!this.enabled) return false;
 
-        for(const gesture in this.gestures) {
-            if (gesture.type === 'scroll' && gesture.canHandleEvent(scrollEvent))
+        for(const idx in this.gestures) {
+            let gesture = this.gestures[idx];
+            if ((gesture.type === GestureType.SCROLL) && gesture.gesture.canHandleEvent(scrollEvent))
                 return true
         }
         return false;
@@ -593,9 +628,10 @@ var SwipeTracker = GObject.registerClass({
     }
 
     _beginTouchSwipe(gesture, time, x, y) {
-        for(const gesture in this.gestures) {
-            if(gesture.type === GESTURE_TYPE.touch)
-                gesture.cancel();
+        for(const idx in this.gestures) {
+            let g = this.gestures[idx];
+            if(g.type === GestureType.DRAG)
+                g.cancel();
         }
 
         this._beginGesture(gesture, time, x, y);
@@ -750,7 +786,7 @@ var SwipeTracker = GObject.registerClass({
         this.emit('end', duration, endProgress);
     }
 
-    _cancelTouchGesture(_gesture, time, distance) {
+    _cancelTouchGesture(gesture, time, distance) {
         if (this._state !== State.SCROLLING)
             return;
 
@@ -784,8 +820,8 @@ var SwipeTracker = GObject.registerClass({
     }
 
     destroy() {
-        for(const gesture in this.gestures) {
-            gesture.destroy();
+        for(const idx in this.gestures) {
+            this.disconnectGesture(idx);
         }
         delete this.gestures;
     }

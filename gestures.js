@@ -14,15 +14,24 @@ const trackers = [
 ]
 
 const Functionality = {
-    openCloseWorkspaceOverview: (function () {
+    openCloseWorkspaceOverview: function () {
+        if(global.vertical_overview.activeTrackers['openCloseWorkspaceOverview']) {
+            return global.vertical_overview.activeTrackers['openCloseWorkspaceOverview'];
+        }
+
         let swipeTracker = new SwipeTracker.SwipeTracker();
         swipeTracker.connect('begin', Main.overview._gestureBegin.bind(Main.overview));
         swipeTracker.connect('update', Main.overview._gestureUpdate.bind(Main.overview));
         swipeTracker.connect('end', Main.overview._gestureEnd.bind(Main.overview));
+        global.vertical_overview.activeTrackers['openCloseWOrkspaceOverview'] = swipeTracker;
         return swipeTracker;
-    })(),
+    },
 
-    switchWorkspaceOverview: (function () {
+    switchWorkspaceOverview: function () {
+        if(global.vertical_overview.activeTrackers['switchWorkspaceOverview']) {
+            return global.vertical_overview.activeTrackers['switchWorkspaceOverview'];
+        }
+
         let workspacesDisplay = Main.overview._overview._controls._workspacesDisplay;
 
         let swipeTracker = new SwipeTracker.SwipeTracker();
@@ -30,12 +39,17 @@ const Functionality = {
         swipeTracker.connect('begin', workspacesDisplay._switchWorkspaceBegin.bind(workspacesDisplay));
         swipeTracker.connect('update', workspacesDisplay._switchWorkspaceUpdate.bind(workspacesDisplay));
         swipeTracker.connect('end', workspacesDisplay._switchWorkspaceEnd.bind(workspacesDisplay));
+
+        global.vertical_overview.activeTrackers['switchWorkspaceOverview'] = swipeTracker;
         return swipeTracker;
-    })(),
+    },
 
-    switchWorkspace:  (function() {
+    switchWorkspace:  function() {
+        if(global.vertical_overview.activeTrackers['switchWorkspace']) {
+            return global.vertical_overview.activeTrackers['switchWorkspace'];
+        }
+
         let workspaceAnimation = Main.wm._workspaceAnimation;
-
         let swipeTracker = new SwipeTracker.SwipeTracker();
         swipeTracker.connect('begin', workspaceAnimation._switchWorkspaceBegin.bind(workspaceAnimation));
         swipeTracker.connect('update', workspaceAnimation._switchWorkspaceUpdate.bind(workspaceAnimation));
@@ -44,20 +58,22 @@ const Functionality = {
             swipeTracker, 'scroll-modifiers',
             GObject.BindingFlags.SYNC_CREATE);
 
+        global.vertical_overview.activeTrackers['switchWorkspace'] = swipeTracker;
         return swipeTracker;
-    })()
+    }
 }
 
 function override() {
+    global.vertical_overview.activeTrackers = {};
     for(let tracker of trackers) {
         tracker.enabled = false;
     }
 
-    Main.overview._swipeTracker = Functionality.openCloseWorkspaceOverview;
-    Main.overview._overview._controls._workspacesDisplay._swipeTracker = Functionality.switchWorkspaceOverview;
-    Main.wm._workspaceAnimation._swipeTracker = Functionality.switchWorkspace;
+    Main.overview._swipeTracker = Functionality.openCloseWorkspaceOverview();
+    Main.overview._overview._controls._workspacesDisplay._swipeTracker = Functionality.switchWorkspaceOverview();
+    Main.wm._workspaceAnimation._swipeTracker = Functionality.switchWorkspace();
 
-    Functionality.openCloseWorkspaceOverview.connectGesture(
+    Functionality.openCloseWorkspaceOverview().connectGesture(
         global.stage,
         GestureType.TOUCHPAD | GestureType.TOUCH,
         Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
@@ -65,15 +81,15 @@ function override() {
         3
     );
 
-    Functionality.switchWorkspaceOverview.connectGesture(
+    Functionality.switchWorkspaceOverview().connectGesture(
         Main.layoutManager.overviewGroup,
-        GestureType.TOUCHPAD,
+        GestureType.TOUCHPAD | GestureType.SCROLL,
         Shell.ActionMode.OVERVIEW,
         Clutter.Orientation.VERTICAL,
         4
     );
 
-    Functionality.switchWorkspace.connectGesture(
+    Functionality.switchWorkspace().connectGesture(
         global.stage,
         GestureType.TOUCHPAD | GestureType.TOUCH,
         Shell.ActionMode.NORMAL,
@@ -83,27 +99,17 @@ function override() {
 }
 
 function reset() {
+    for(var key in global.vertical_overview.activeTrackers) {
+        global.vertical_overview.activeTrackers[key].destroy();
+        delete global.vertical_overview.activeTrackers[key];
+    }
+    delete global.vertical_overview.activeTrackers;
 
-    // if (USE_3_FINGER_SWIPES) {
-    //     var swipeTracker = Main.overview._swipeTracker;
-    //     Main.overview._swipeTracker = global.vertical_overview.swipeTracker;
-    //     swipeTracker.destroy();
-    //     delete swipeTracker;
-    //     Main.overview._swipeTracker.enabled = true;
-    // } else {
-    //     let workspacesDisplay = Main.overview._overview._controls._workspacesDisplay;
-    //     var swipeTracker = workspacesDisplay._swipeTracker;
-    //     workspacesDisplay._swipeTracker = global.vertical_overview.swipeTracker;
-    //     swipeTracker.destroy();
-    //     delete swipeTracker;
+    for(let tracker of trackers) {
+        tracker.enabled = true;
+    }
 
-    //     let workspaceAnimation = Main.wm._workspaceAnimation;
-    //     let animationSwipeTracker = workspaceAnimation._swipeTracker;
-    //     animationSwipeTracker.destroy();
-    //     delete animationSwipeTracker;
-
-    //     workspaceAnimation._swipeTracker = global.vertical_overview.animationSwipeTracker;
-    //     workspaceAnimation._swipeTracker.enabled = true;
-    // }
-
+    Main.overview._swipeTracker = trackers[0];
+    Main.overview._overview._controls._workspacesDisplay._swipeTracker = trackers[1];
+    Main.wm._workspaceAnimation._swipeTracker = trackers[2];
 }
