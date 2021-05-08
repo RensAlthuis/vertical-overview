@@ -176,7 +176,7 @@ var ThumbnailsBoxOverride = {
             });
         }
 
-        let thumbnails_position = (global.vertical_overview.settings.get_int('thumbnails-position') || 1);
+        let thumbnails_position = (global.vertical_overview.settings.object.get_int('thumbnails-position') || 1);
         let totalHeight = (height * this._thumbnails.length) + spacing;
         box.y1 = (box.get_height() - totalHeight) / (100 / thumbnails_position);
 

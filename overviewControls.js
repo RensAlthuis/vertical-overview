@@ -122,24 +122,27 @@ var ControlsManagerLayoutOverride = {
         availableHeight -= searchHeight + spacing;
 
         // Dash
-        if (!global.vertical_overview.settings.get_boolean('hide-dash')) {
-            if (global.vertical_overview.settings.get_boolean('override-dash')) {
+        if (global.vertical_overview.dash_override) {
+            if (!global.vertical_overview.settings.object.get_boolean('hide-dash')) {
                 let dashHeight = height * this.dashMaxHeightScale;
                 this._dash.setMaxSize(leftOffset, dashHeight);
                 let [, maxDashWidth] = this._dash.get_preferred_width(height);
                 childBox.set_origin(0, startY);
                 childBox.set_size(leftOffset, height);
                 this._dash.allocate(childBox);
-            } else {
-                const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
-                this._dash.setMaxSize(width, maxDashHeight);
-
-                let [, dashHeight] = this._dash.get_preferred_height(width);
-                dashHeight = height - startY;
-                childBox.set_origin(0, startY + height - dashHeight);
-                childBox.set_size(width, dashHeight);
-                this._dash.allocate(childBox);
             }
+        } else {
+            const maxDashHeight = Math.round(box.get_height() * DASH_MAX_HEIGHT_RATIO);
+            this._dash.setMaxSize(width, maxDashHeight);
+
+            let [, dashHeight] = this._dash.get_preferred_height(width);
+            dashHeight = Math.min(dashHeight, maxDashHeight);
+            childBox.set_origin(0, startY + height - dashHeight);
+            childBox.set_size(width, dashHeight);
+            this._dash.allocate(childBox);
+
+            availableHeight -= dashHeight + spacing;
+
         }
 
 

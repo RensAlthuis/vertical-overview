@@ -73,12 +73,39 @@ function overrideProto(proto, overrides) {
 }
 
 function bindSetting(label, callback, executeOnBind = true) {
-    if (!global.vertical_overview.settings) global.vertical_overview.settings = getSettings('org.gnome.shell.extensions.vertical-overview');
-    if (!global.vertical_overview.signals) global.vertical_overview.signals = [];
+    let settings = global.vertical_overview.settings;
+    if (!settings) {
+        settings = global.vertical_overview.settings = {
+            object: getSettings('org.gnome.shell.extensions.vertical-overview'),
+            signals: {},
+            callbacks: {}
+        };
+    }
 
-    if (executeOnBind) callback(global.vertical_overview.settings, label);
 
-    let signal = global.vertical_overview.settings.connect('changed::' + label, callback);
-    global.vertical_overview.signals.push(signal);
+    if (settings.signals[label])
+        settings.object.disconnect(settings.signals[label]);
+
+    const signal = global.vertical_overview.settings.object.connect('changed::' + label, callback);
+    global.vertical_overview.settings.signals[label] = signal;
+    settings.callbacks[label] = callback;
+
+    if (executeOnBind) callback(settings.object, label);
     return signal;
+}
+
+function unbindSetting(label, callback) {
+    let settings = global.vertical_overview.settings;
+    if (!settings || !settings.signals[label])
+        return;
+
+    if (callback)
+        callback(settings.object, label);
+
+    settings.object.disconnect(settings.signals[label]);
+    delete settings.signals[label];
+
+    if (settings.callbacks[label]) {
+        delete settings.callbacks[label];
+    }
 }

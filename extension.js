@@ -27,6 +27,7 @@ function enable() {
     WorkspacesViewOverrides.override();
     WorkspaceThumbnailOverrides.override();
     Gestures.override();
+    DashOverride.override();
 
     //this is the magic function that switches the internal layout to vertical
     global.workspace_manager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, true, -1, 1);
@@ -47,19 +48,16 @@ function disable() {
     WorkspaceOverride.scalingWorkspaceBackgroundReset();
     WorkspaceThumbnailOverrides.reset();
     Gestures.reset();
-
-    if (global.vertical_overview.settings.get_boolean('override-dash'))
-        DashOverride.reset();
-    if (global.vertical_overview.settings.get_boolean('hide-dash'))
-        DashOverride.show();
+    DashOverride.reset();
 
     rebind_keys(Main.overview._overview._controls);
 
     global.workspaceManager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, 1, -1);
 
-    global.vertical_overview.signals.forEach(id => {
-        global.vertical_overview.settings.disconnect(id);
+    global.vertical_overview.settings.signals.forEach(id => {
+        Util.disable(id);
     });
+
     delete global.vertical_overview;
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] disabled");
 }
@@ -73,67 +71,6 @@ function bindSettings() {
 
     Util.bindSetting('right-offset', (settings, label) => {
         controlsManager.layoutManager.rightOffset = settings.get_int(label);
-    });
-
-    let dash_max_height_id = null;
-    let dash_max_height_scale = controlsManager.layoutManager.dashMaxHeightScale;
-    let bind_dash_max_height = function () {
-        dash_max_height_id = Util.bindSetting('dash-max-height', (settings, label) => {
-            controlsManager.layoutManager.dashMaxHeightScale = settings.get_int(label) / 100.0;
-        });
-    };
-
-    Util.bindSetting('override-dash', (settings, label) => {
-        if (settings.get_boolean(label)) {
-            DashOverride.override();
-            if (dash_max_height_id == null)
-                bind_dash_max_height();
-            DashOverride.overridden = true;
-        } else if (dash_max_height_id != null) {
-            DashOverride.reset();
-            settings.disconnect(dash_max_height_id);
-            global.vertical_overview.signals.splice(global.vertical_overview.signals.indexOf(dash_max_height_id), 1);
-            dash_max_height_id = null;
-            controlsManager.layoutManager.dashMaxHeightScale = dash_max_height_scale;
-            DashOverride.overridden = false;
-        }
-    });
-
-    Util.bindSetting('show-apps-on-top', (settings, label) => {
-        if (settings.get_boolean(label)) {
-            DashOverride.apps_to_top();
-        } else {
-            DashOverride.apps_to_bottom();
-        }
-    });
-
-    Util.bindSetting('dash-max-icon-size', (settings, label) => {
-        DashOverride.dashMaxIconSize = settings.get_int(label);
-        if (DashOverride.overridden) {
-            DashOverride.override();
-        }
-    });
-
-    Util.bindSetting('custom-run-indicator', (settings, label) => {
-        if (settings.get_boolean(label)) {
-            DashOverride.customRunIndicatorEnabled = true;
-            if (DashOverride.overridden) {
-                DashOverride.override();
-            }
-        } else {
-            DashOverride.customRunIndicatorEnabled = false;
-            if (DashOverride.overridden) {
-                DashOverride.override();
-            }
-        }
-    });
-
-    Util.bindSetting('hide-dash', (settings, label) => {
-        if (settings.get_boolean(label)) {
-            DashOverride.hide();
-        } else {
-            DashOverride.show();
-        }
     });
 
     Util.bindSetting('scaling-workspace-background', (settings, label) => {

@@ -19,8 +19,84 @@ var DASH_ITEM_HOVER_TIMEOUT = 300;
 const baseIconSizes = [16, 22, 24, 32, 48, 64];
 
 function override() {
-    global.vertical_overview.GSFunctions['Dash'] = Util.overrideProto(Dash.Dash.prototype, DashOverride);
+    Util.bindSetting('override-dash', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            global.vertical_overview.GSFunctions['Dash'] = Util.overrideProto(Dash.Dash.prototype, DashOverride);
+            set_to_vertical();
+            Util.bindSetting('dash-max-height', dash_max_height);
+            Util.bindSetting('hide-dash', hide_dash);
+            Util.bindSetting('show-apps-on-top', show_apps_on_top);
+            Util.bindSetting('dash-max-icon-size', dash_max_icon_size);
+            Util.bindSetting('custom-run-indicator', custom_run_indicator);
+            global.vertical_overview.dash_override = true;
+        } else {
+            if (global.vertical_overview.dash_override) {
+                Util.unbindSetting('dash-max-height', () => {
+                    delete Main.overview._overview._controls.dashMaxHeightScale;
+                });
 
+                Util.unbindSetting('hide-dash', (settings, label) => {
+                    if (settings.get_boolean(label))
+                        Main.overview._overview._controls.dash.show();
+                });
+
+                Util.unbindSetting('show-apps-on-top', () => {
+                    let dash = Main.overview._overview._controls.dash;
+                    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
+                });
+
+                Util.unbindSetting('dash-max-icon-size', () => {
+                    delete Main.overview._overview._controls.dash.maxIconSizeOverride;
+                });
+
+                Util.unbindSetting('custom-run-indicator', () => {
+                    delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
+                });
+
+                set_to_horizontal();
+                Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+                global.vertical_overview.dash_override = false;
+            }
+        }
+    });
+}
+
+function reset() {
+    if (global.vertical_overview.dash_override) {
+        Util.unbindSetting('override-dash', (settings, label) => {
+            if (!settings.get_boolean(label)) {
+                Util.unbindSetting('dash-max-height', () => {
+                    delete Main.overview._overview._controls.dashMaxHeightScale;
+                });
+
+                Util.unbindSetting('hide-dash', (settings, label) => {
+                    if (settings.get_boolean(label))
+                        Main.overview._overview._controls.dash.show();
+                });
+
+                Util.unbindSetting('show-apps-on-top', () => {
+                    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
+                });
+
+                Util.unbindSetting('dash-max-icon-size', () => {
+                    delete Main.overview._overview._controls.dash.maxIconSizeOverride;
+                });
+
+                Util.unbindSetting('custom-run-indicator', () => {
+                    delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
+                    dash._box.remove_all_children();
+                    dash._separator = null;
+                });
+
+                set_to_horizontal();
+                Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+            }
+        });
+        global.vertical_overview.dash_override = false;
+    }
+}
+
+function set_to_vertical() {
     let dash = Main.overview._overview._controls.dash;
     global.vertical_overview.dash_workId = dash._workId;
     dash._workId = Main.initializeDeferredWork(dash._box, dash._redisplay.bind(dash));
@@ -48,7 +124,48 @@ function override() {
     dash._queueRedisplay();
 }
 
-function reset() {
+function dash_max_height(settings, label) {
+    Main.overview._overview._controls.layoutManager.dashMaxHeightScale = settings.get_int(label) / 100.0;
+}
+
+function hide_dash(settings, label) {
+    if (settings.get_boolean(label)) {
+        Main.overview._overview._controls.dash.hide();
+    } else {
+        Main.overview._overview._controls.dash.show();
+    }
+}
+
+function show_apps_on_top(settings, label) {
+    let dash = Main.overview._overview._controls.dash;
+
+    if (settings.get_boolean(label)) {
+        dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0);
+    } else {
+        dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
+    }
+}
+
+function dash_max_icon_size(settings, label) {
+    let dash = Main.overview._overview._controls.dash;
+    dash.maxIconSizeOverride = settings.get_int(label);
+    dash._queueRedisplay();
+}
+
+function custom_run_indicator(settings, label) {
+    let dash = Main.overview._overview._controls.dash;
+    if (settings.get_boolean(label)) {
+        dash.customRunIndicatorEnabled = true;
+    } else {
+        dash.customRunIndicatorEnabled = false;
+    }
+
+    dash._box.remove_all_children();
+    dash._separator = null;
+    dash._queueRedisplay();
+}
+
+function set_to_horizontal() {
     let dash = Main.overview._overview._controls.dash;
     dash._workId = global.vertical_overview.dash_workId; //pretty sure this is a leak, but there no provided way to disconnect these...
     dash._box.layout_manager.orientation = Clutter.Orientation.HORIZONTAL;
@@ -56,8 +173,6 @@ function reset() {
     dash._dashContainer.y_expand = true;
     dash._dashContainer.x_expand = false;
     dash.x_align = Clutter.ActorAlign.CENTER;
-
-    apps_to_bottom();
 
     dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 
@@ -72,28 +187,9 @@ function reset() {
         coordinate: Clutter.BindCoordinate.WIDTH,
     }));
 
-    Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
     dash._box.remove_all_children();
     dash._separator = null;
     dash._queueRedisplay();
-}
-
-function apps_to_top() {
-    let dash = Main.overview._overview._controls.dash;
-    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0);
-}
-
-function apps_to_bottom() {
-    let dash = Main.overview._overview._controls.dash;
-    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
-}
-
-function show() {
-    Main.overview._overview._controls.dash.show();
-}
-
-function hide() {
-    Main.overview._overview._controls.dash.hide();
 }
 
 var DashOverride = {
@@ -400,8 +496,8 @@ var DashOverride = {
                 newIconSize = baseIconSizes[i];
         }
 
-        if (dashMaxIconSize < newIconSize) {
-            newIconSize = dashMaxIconSize;
+        if (this.maxIconSizeOverride > 0 && this.maxIconSizeOverride < newIconSize) {
+            newIconSize = this.maxIconSizeOverride;
         }
 
         if (newIconSize == this.iconSize)
@@ -453,11 +549,12 @@ var DashOverride = {
     _createAppItem: function (app) {
         let appIcon = new DashIcon(app);
 
-    if (customRunIndicatorEnabled) {
-        let indicator = appIcon._dot;
+        log(this.customRunIndicatorEnabled);
+        if (this.customRunIndicatorEnabled) {
+            let indicator = appIcon._dot;
             indicator.x_align = Clutter.ActorAlign.START;
             indicator.y_align = null;
-    }
+        }
 
         appIcon.connect('menu-state-changed',
             (o, opened) => {
