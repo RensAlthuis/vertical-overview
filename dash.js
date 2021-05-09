@@ -63,8 +63,8 @@ function override() {
 
 function reset() {
     if (global.vertical_overview.dash_override) {
-        Util.unbindSetting('override-dash', (settings, label) => {
-            if (!settings.get_boolean(label)) {
+        Util.unbindSetting('override-dash', () => {
+            if (global.vertical_overview.dash_override) {
                 Util.unbindSetting('dash-max-height', () => {
                     delete Main.overview._overview._controls.dashMaxHeightScale;
                 });
@@ -75,6 +75,7 @@ function reset() {
                 });
 
                 Util.unbindSetting('show-apps-on-top', () => {
+                    let dash = Main.overview._overview._controls.dash;
                     dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
                 });
 
@@ -84,15 +85,13 @@ function reset() {
 
                 Util.unbindSetting('custom-run-indicator', () => {
                     delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
-                    dash._box.remove_all_children();
-                    dash._separator = null;
                 });
 
                 set_to_horizontal();
                 Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+                global.vertical_overview.dash_override = false;
             }
         });
-        global.vertical_overview.dash_override = false;
     }
 }
 
