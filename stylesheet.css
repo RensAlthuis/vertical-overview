@@ -1,5 +1,5 @@
 
-#dash.vertical-overview .dash-item-container .app-well-app, .show-apps {
+#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps {
     padding: 0 !important;
 }
 
@@ -17,7 +17,7 @@
     margin: 6px 0px;
 }
 
-#dash.vertical-overview .dash-item-container .app-well-app, .show-apps {
+#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps {
     padding-left: 14px;
 }
 

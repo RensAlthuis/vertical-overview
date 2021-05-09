@@ -54,9 +54,9 @@ function disable() {
 
     global.workspaceManager.override_workspace_layout(Meta.DisplayCorner.TOPLEFT, false, 1, -1);
 
-    global.vertical_overview.settings.signals.forEach(id => {
-        Util.disable(id);
-    });
+    for (var key in global.vertical_overview.settings.signals) {
+        Util.unbindSetting(key);
+    };
 
     delete global.vertical_overview;
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] disabled");
