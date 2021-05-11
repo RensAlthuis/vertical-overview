@@ -65,6 +65,16 @@ function scalingWorkspaceBackgroundReset() {
     }
 }
 
+function override() {
+    global.vertical_overview.GSFunctions["WorkspaceLayout"] = _Util.overrideProto(Workspace.WorkspaceLayout.prototype, WorkspaceLayoutOverride);
+}
+
+function reset() {
+    staticBackgroundReset();
+    scalingWorkspaceBackgroundReset();
+    _Util.overrideProto(Workspace.WorkspaceLayout.prototype, global.vertical_overview.GSFunctions["WorkspaceLayout"]);
+}
+
 WorkspaceOverride = {
     _init: function (metaWorkspace, monitorIndex, overviewAdjustment) {
         St.Widget.prototype._init.call(this, {
@@ -154,4 +164,28 @@ WorkspaceOverride = {
         this._delegate = this;
     },
 
+}
+
+let WorkspaceLayoutOverride = {
+    _adjustSpacingAndPadding(rowSpacing, colSpacing, containerBox) {
+        if (this._sortedWindows.length === 0)
+            return [rowSpacing, colSpacing, containerBox];
+
+        // All of the overlays have the same chrome sizes,
+        // so just pick the first one.
+        const window = this._sortedWindows[0];
+
+        const [topOversize, bottomOversize] = window.chromeHeights();
+        const [leftOversize, rightOversize] = window.chromeWidths();
+
+        const oversize =
+            Math.max(topOversize, bottomOversize, leftOversize, rightOversize);
+
+        if (rowSpacing !== null)
+            rowSpacing += oversize;
+        if (colSpacing !== null)
+            colSpacing += oversize;
+
+        return [rowSpacing, colSpacing, containerBox];
+    },
 }
