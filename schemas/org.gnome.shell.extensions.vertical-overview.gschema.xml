@@ -61,5 +61,10 @@
             <summary>workspace peek distance in pixels</summary>
             <description></description>
         </key>
+        <key type="b" name="dash-move-labels">
+            <default>false</default>
+            <summary>Move the labels in the dash to the right of the icons</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>
