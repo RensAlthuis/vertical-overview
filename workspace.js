@@ -30,7 +30,7 @@ function staticBackgroundOverride() {
             })
 
             bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-                bgManager.backgroundActor.opacity = Util.lerp(255, 127, Math.min(v.value));
+                bgManager.backgroundActor.opacity = Util.lerp(255, 100, Math.min(v.value, 1));
             });
 
             global.vertical_overview.bgManagers.push(bgManager);
