@@ -477,6 +477,41 @@
                         <signal name="notify::active" handler="_onBoolValueChanged" />
                     </object>
                 </child>
+                <child>
+                    <object class="GtkBox" id="dash-move-labels-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="dash-move-labels-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Move labels</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="dash-move-labels-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Move labels to the right side of the icons</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="dash-move-labels">
+                        <property name="name">dash-move-labels</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
             </object>
         </child>
         <child type="tab">

@@ -318,7 +318,7 @@ function _updateWorkspacesDisplay() {
     let initialParams = paramsForState(initialState);
     let finalParams = paramsForState(finalState);
 
-    let opacity = Util.lerp(initialParams.opacity, finalParams.opacity, progress)
+    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
     let workspacesDisplayVisible =

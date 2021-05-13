@@ -22,14 +22,24 @@ function override() {
     Util.bindSetting('override-dash', (settings, label) => {
         if (settings.get_boolean(label)) {
             global.vertical_overview.GSFunctions['Dash'] = Util.overrideProto(Dash.Dash.prototype, DashOverride);
+            global.vertical_overview.GSFunctions['DashItemContainer'] = Util.overrideProto(Dash.DashItemContainer.prototype, DashItemContainerOverride);
             set_to_vertical();
             Util.bindSetting('dash-max-height', dash_max_height);
             Util.bindSetting('hide-dash', hide_dash);
             Util.bindSetting('show-apps-on-top', show_apps_on_top);
             Util.bindSetting('dash-max-icon-size', dash_max_icon_size);
             Util.bindSetting('custom-run-indicator', custom_run_indicator);
+            Util.bindSetting('dash-move-labels', dash_move_labels);
             global.vertical_overview.dash_override = true;
         } else {
+            reset();
+        }
+    });
+}
+
+function reset() {
+    if (global.vertical_overview.dash_override) {
+        Util.unbindSetting('override-dash', () => {
             if (global.vertical_overview.dash_override) {
                 Util.unbindSetting('dash-max-height', () => {
                     delete Main.overview._overview._controls.dashMaxHeightScale;
@@ -53,46 +63,16 @@ function override() {
                     delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
                 });
 
+                Util.unbindSetting('dash-move-labels', () => {
+                    delete global.vertical_overview.dash_move_labels;
+                });
+
                 set_to_horizontal();
                 Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+                Util.overrideProto(Dash.DashItemContainer.prototype, global.vertical_overview.GSFunctions['DashItemContainer']);
                 global.vertical_overview.dash_override = false;
             }
-        }
-    });
-}
-
-function reset() {
-    if (global.vertical_overview.dash_override) {
-        Util.unbindSetting('override-dash', (settings, label) => {
-            if (!settings.get_boolean(label)) {
-                Util.unbindSetting('dash-max-height', () => {
-                    delete Main.overview._overview._controls.dashMaxHeightScale;
-                });
-
-                Util.unbindSetting('hide-dash', (settings, label) => {
-                    if (settings.get_boolean(label))
-                        Main.overview._overview._controls.dash.show();
-                });
-
-                Util.unbindSetting('show-apps-on-top', () => {
-                    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
-                });
-
-                Util.unbindSetting('dash-max-icon-size', () => {
-                    delete Main.overview._overview._controls.dash.maxIconSizeOverride;
-                });
-
-                Util.unbindSetting('custom-run-indicator', () => {
-                    delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
-                    dash._box.remove_all_children();
-                    dash._separator = null;
-                });
-
-                set_to_horizontal();
-                Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
-            }
         });
-        global.vertical_overview.dash_override = false;
     }
 }
 
@@ -165,6 +145,10 @@ function custom_run_indicator(settings, label) {
     dash._queueRedisplay();
 }
 
+function dash_move_labels(settings, label) {
+    global.vertical_overview.dash_move_labels = settings.get_boolean(label);
+}
+
 function set_to_horizontal() {
     let dash = Main.overview._overview._controls.dash;
     dash._workId = global.vertical_overview.dash_workId; //pretty sure this is a leak, but there no provided way to disconnect these...
@@ -190,6 +174,51 @@ function set_to_horizontal() {
     dash._box.remove_all_children();
     dash._separator = null;
     dash._queueRedisplay();
+}
+
+var DashItemContainerOverride = {
+    showLabel() {
+        if (!this._labelText)
+            return;
+
+        this.label.set_text(this._labelText);
+        this.label.opacity = 0;
+        this.label.show();
+
+        let [stageX, stageY] = this.get_transformed_position();
+
+        let x, y;
+        if(global.vertical_overview.dash_move_labels) {
+            const itemHeight = this.allocation.get_height();
+            const labelHeight = this.label.get_height();
+            const yOffset = Math.floor((itemHeight - labelHeight) / 2);
+
+
+            let node = this.label.get_theme_node();
+            const xOffset = node.get_length('-x-offset');
+
+            x = stageX + this.width + xOffset;
+            y = Math.clamp(stageY + yOffset, 0, global.stage.height - labelHeight);
+        } else {
+            const itemWidth = this.allocation.get_width();
+
+            const labelWidth = this.label.get_width();
+            const xOffset = Math.floor((itemWidth - labelWidth) / 2);
+
+            let node = this.label.get_theme_node();
+            const yOffset = node.get_length('-y-offset');
+
+            x = Math.clamp(stageX + xOffset, 0, global.stage.width - labelWidth);
+            y = stageY - this.label.height - yOffset;
+        }
+
+        this.label.set_position(x, y);
+        this.label.ease({
+            opacity: 255,
+            duration: DASH_ITEM_LABEL_SHOW_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+        });
+    }
 }
 
 var DashOverride = {

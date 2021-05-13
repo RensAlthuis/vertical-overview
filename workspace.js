@@ -30,7 +30,7 @@ function staticBackgroundOverride() {
             })
 
             bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-                bgManager.backgroundActor.opacity = Util.lerp(255, 127, Math.min(v.value));
+                bgManager.backgroundActor.opacity = Util.lerp(255, 100, Math.min(v.value, 1));
             });
 
             global.vertical_overview.bgManagers.push(bgManager);
@@ -63,6 +63,16 @@ function scalingWorkspaceBackgroundReset() {
         _Util.overrideProto(Workspace.Workspace.prototype, global.vertical_overview.GSFunctions['Workspace']);
         scalingWorkspaceBackgroundEnabled = false;
     }
+}
+
+function override() {
+    global.vertical_overview.GSFunctions["WorkspaceLayout"] = _Util.overrideProto(Workspace.WorkspaceLayout.prototype, WorkspaceLayoutOverride);
+}
+
+function reset() {
+    staticBackgroundReset();
+    scalingWorkspaceBackgroundReset();
+    _Util.overrideProto(Workspace.WorkspaceLayout.prototype, global.vertical_overview.GSFunctions["WorkspaceLayout"]);
 }
 
 WorkspaceOverride = {
@@ -154,4 +164,28 @@ WorkspaceOverride = {
         this._delegate = this;
     },
 
+}
+
+let WorkspaceLayoutOverride = {
+    _adjustSpacingAndPadding(rowSpacing, colSpacing, containerBox) {
+        if (this._sortedWindows.length === 0)
+            return [rowSpacing, colSpacing, containerBox];
+
+        // All of the overlays have the same chrome sizes,
+        // so just pick the first one.
+        const window = this._sortedWindows[0];
+
+        const [topOversize, bottomOversize] = window.chromeHeights();
+        const [leftOversize, rightOversize] = window.chromeWidths();
+
+        const oversize =
+            Math.max(topOversize, bottomOversize, leftOversize, rightOversize);
+
+        if (rowSpacing !== null)
+            rowSpacing += oversize;
+        if (colSpacing !== null)
+            colSpacing += oversize;
+
+        return [rowSpacing, colSpacing, containerBox];
+    },
 }

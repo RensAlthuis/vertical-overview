@@ -12,7 +12,7 @@ const WorkspaceThumbnailOverrides = Self.imports.workspaceThumbnail;
 const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
 const Background = imports.ui.background;
-const WorkspaceOverride = Self.imports.workspace;
+const WorkspaceOverrides = Self.imports.workspace;
 
 function init() {
 }
@@ -26,6 +26,7 @@ function enable() {
     OverviewControlsOverride.override();
     WorkspacesViewOverrides.override();
     WorkspaceThumbnailOverrides.override();
+    WorkspaceOverrides.override();
     Gestures.override();
     DashOverride.override();
 
@@ -44,8 +45,7 @@ function disable() {
 
     OverviewControlsOverride.reset();
     WorkspacesViewOverrides.reset();
-    WorkspaceOverride.staticBackgroundReset();
-    WorkspaceOverride.scalingWorkspaceBackgroundReset();
+    WorkspaceOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
     Gestures.reset();
     DashOverride.reset();
@@ -75,17 +75,17 @@ function bindSettings() {
 
     Util.bindSetting('scaling-workspace-background', (settings, label) => {
         if (settings.get_boolean(label)) {
-            WorkspaceOverride.scalingWorkspaceBackgroundOverride();
+            WorkspaceOverrides.scalingWorkspaceBackgroundOverride();
         } else {
-            WorkspaceOverride.scalingWorkspaceBackgroundReset();
+            WorkspaceOverrides.scalingWorkspaceBackgroundReset();
         }
     });
 
     Util.bindSetting('static-background', (settings, label) => {
         if (settings.get_boolean(label)) {
-            WorkspaceOverride.staticBackgroundOverride();
+            WorkspaceOverrides.staticBackgroundOverride();
         } else {
-            WorkspaceOverride.staticBackgroundReset();
+            WorkspaceOverrides.staticBackgroundReset();
         }
     });
 
