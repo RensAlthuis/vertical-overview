@@ -242,7 +242,7 @@ var WorkspaceThumbnailOverride = {
     after__init: function () {
         this._bgManager = new Background.BackgroundManager({
             monitorIndex: Main.layoutManager.primaryIndex,
-            container: this._contents,
+            container: this._viewport,
             vignette: false
         });
 
