@@ -32,48 +32,49 @@ function override() {
             Util.bindSetting('dash-move-labels', dash_move_labels);
             global.vertical_overview.dash_override = true;
         } else {
-            reset();
+            reset(false);
         }
     });
 }
 
-function reset() {
+
+function reset(isDisable) {
     if (global.vertical_overview.dash_override) {
-        Util.unbindSetting('override-dash', () => {
-            if (global.vertical_overview.dash_override) {
-                Util.unbindSetting('dash-max-height', () => {
-                    delete Main.overview._overview._controls.dashMaxHeightScale;
-                });
+        set_to_horizontal();
+        Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
+        Util.overrideProto(Dash.DashItemContainer.prototype, global.vertical_overview.GSFunctions['DashItemContainer']);
+        global.vertical_overview.dash_override = false;
 
-                Util.unbindSetting('hide-dash', (settings, label) => {
-                    if (settings.get_boolean(label))
-                        Main.overview._overview._controls.dash.show();
-                });
-
-                Util.unbindSetting('show-apps-on-top', () => {
-                    let dash = Main.overview._overview._controls.dash;
-                    dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
-                });
-
-                Util.unbindSetting('dash-max-icon-size', () => {
-                    delete Main.overview._overview._controls.dash.maxIconSizeOverride;
-                });
-
-                Util.unbindSetting('custom-run-indicator', () => {
-                    delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
-                });
-
-                Util.unbindSetting('dash-move-labels', () => {
-                    delete global.vertical_overview.dash_move_labels;
-                });
-
-                set_to_horizontal();
-                Util.overrideProto(Dash.Dash.prototype, global.vertical_overview.GSFunctions['Dash']);
-                Util.overrideProto(Dash.DashItemContainer.prototype, global.vertical_overview.GSFunctions['DashItemContainer']);
-                global.vertical_overview.dash_override = false;
-            }
+        Util.unbindSetting('dash-max-height', () => {
+            delete Main.overview._overview._controls.dashMaxHeightScale;
+        });
+        
+        Util.unbindSetting('hide-dash', (settings, label) => {
+            if (settings.get_boolean(label))
+                Main.overview._overview._controls.dash.show();
+        });
+        
+        Util.unbindSetting('show-apps-on-top', () => {
+            let dash = Main.overview._overview._controls.dash;
+            dash._dashContainer.set_child_at_index(dash._showAppsIcon, 1);
+        });
+        
+        Util.unbindSetting('dash-max-icon-size', () => {
+            delete Main.overview._overview._controls.dash.maxIconSizeOverride;
+        });
+        
+        Util.unbindSetting('custom-run-indicator', () => {
+            delete Main.overview._overview._controls.dash.customRunIndicatorEnabled;
+        });
+        
+        Util.unbindSetting('dash-move-labels', () => {
+            delete global.vertical_overview.dash_move_labels;
         });
     }
+    // override-dash shouldn't be unbound unless the extension is disabled,
+    // otherwise it can't be re-enabled without restarting the extension
+    if (isDisable)
+        Util.unbindSetting('override-dash');
 }
 
 function set_to_vertical() {
