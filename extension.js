@@ -48,7 +48,7 @@ function disable() {
     WorkspaceOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
     Gestures.reset();
-    DashOverride.reset();
+    DashOverride.reset(true);
 
     rebind_keys(Main.overview._overview._controls);
 
