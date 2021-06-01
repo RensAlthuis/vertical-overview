@@ -81,8 +81,6 @@ var WorkspacesViewOverride = {
 
         return fitSingleBox;
     }
-
-
 }
 
 var SecondaryMonitorDisplayOverride = {

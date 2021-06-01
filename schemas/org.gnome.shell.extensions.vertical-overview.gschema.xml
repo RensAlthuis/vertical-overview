@@ -66,5 +66,10 @@
             <summary>Move the labels in the dash to the right of the icons</summary>
             <description></description>
         </key>
+        <key type="b" name="dash-to-panel-left-right-fix">
+            <default>false</default>
+            <summary>Fixes for dash to panel</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>

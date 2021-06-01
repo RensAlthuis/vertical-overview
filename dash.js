@@ -578,7 +578,6 @@ var DashOverride = {
     _createAppItem: function (app) {
         let appIcon = new DashIcon(app);
 
-        log(this.customRunIndicatorEnabled);
         if (this.customRunIndicatorEnabled) {
             let indicator = appIcon._dot;
             indicator.x_align = Clutter.ActorAlign.START;

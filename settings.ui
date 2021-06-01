@@ -503,7 +503,7 @@
                 <child>
                     <object class="GtkSwitch" id="dash-move-labels">
                         <property name="name">dash-move-labels</property>
-                        <property name="halign">GTK_ALIGN_START</property>
+                        <!-- <property name="halign">GTK_ALIGN_START</property> -->
                         <property name="valign">GTK_ALIGN_CENTER</property>
                         <layout>
                             <property name="column">1</property>
@@ -517,6 +517,58 @@
         <child type="tab">
             <object class="GtkLabel" id="dash-tab">
                 <property name="label">Dash</property>
+            </object>
+        </child>
+        <child>
+            <object class="GtkGrid" id="misc-grid">
+                <property name="row-spacing">8</property>
+                <property name="column-spacing">24</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">10</property>
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <property name="vexpand">true</property>
+                <child>
+                    <object class="GtkBox">
+                        <property name="hexpand">true</property>
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Dash to Panel left/right fix</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Fix Dash-to-Panel when it's positioned left or right (make sure dash override in the dash tab is disabled)</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="dash-to-panel-left-right-fix">
+                        <property name="name">dash-to-panel-left-right-fix</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child type="tab">
+            <object class="GtkLabel" id="misc-tab">
+                <property name="label">Misc</property>
             </object>
         </child>
     </object>

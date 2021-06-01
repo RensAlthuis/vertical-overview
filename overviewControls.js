@@ -59,6 +59,15 @@ var ControlsManagerLayoutOverride = {
 
         switch (state) {
         case ControlsState.HIDDEN:
+                if (global.vertical_overview.misc_dTPLeftRightFix) {
+                    let [w, h] = Main.layoutManager.panelBox.get_size();
+                    let [x, y] = Main.layoutManager.panelBox.get_transformed_position();
+                    if (x > 0) { // if x > 0 assume panel is on the right side
+                        workspaceBox.set_size(width - w, box.y2);
+                    } else {
+                        workspaceBox.set_origin(w / 2, box.y1);
+                    }
+                }
             break;
         case ControlsState.WINDOW_PICKER:
         case ControlsState.APP_GRID:
@@ -100,16 +109,23 @@ var ControlsManagerLayoutOverride = {
     vfunc_allocate: function(container, box) {
         const childBox = new Clutter.ActorBox();
 
-        let leftOffset = this.leftOffset;
+        var leftOffset = this.leftOffset;
         let rightOffset = this.rightOffset;
 
         const { spacing } = this;
 
         let startY = 0;
-        if (Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y) {
-            startY = Main.layoutManager.panelBox.height;
-            box.y1 += startY;
+
+        if (global.vertical_overview.misc_dTPLeftRightFix) {
+            let [w, h] = Main.layoutManager.panelBox.get_size();
+            leftOffset -= w;
+        } else {
+            if (Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y) {
+                startY = Main.layoutManager.panelBox.height;
+                box.y1 += startY;
+            }
         }
+
         const [width, height] = box.get_size();
         let availableHeight = height;
 

@@ -5,6 +5,7 @@ const Self = ExtensionUtils.getCurrentExtension();
 const Util = Self.imports.util;
 
 const BuilderScope = GObject.registerClass({
+    GTypeName: 'VerticalOverviewBuilderScope',
     Implements: [Gtk.BuilderScope],
 }, class BuilderScope extends GObject.Object {
     _init() {

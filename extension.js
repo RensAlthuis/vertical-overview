@@ -92,6 +92,10 @@ function bindSettings() {
     Util.bindSetting('workspace-peek-distance', (settings, label) => {
         global.vertical_overview.workspacePeek = settings.get_int(label);
     });
+
+    Util.bindSetting('dash-to-panel-left-right-fix', (settings, label) => {
+        global.vertical_overview.misc_dTPLeftRightFix = settings.get_boolean(label);
+    });
 }
 
 function rebind_keys(self) {

@@ -102,15 +102,6 @@ WorkspaceOverride = {
             });
 
         this._overviewAdjustment = overviewAdjustment;
-        this._overviewStateId = overviewAdjustment.connect('notify::value', () => {
-            const overviewState = overviewAdjustment.value;
-
-            // We want windows not to spill out when the overview is in
-            // APP_GRID state, but HIDDEN and WINDOW_PICKER should allow
-            // them to eventually draw outside the workspace.
-            this._container.clip_to_allocation =
-                overviewState > OverviewControls.ControlsState.WINDOW_PICKER;
-        });
 
         this.monitorIndex = monitorIndex;
         this._monitor = Main.layoutManager.monitors[this.monitorIndex];
