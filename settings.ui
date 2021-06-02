@@ -252,6 +252,76 @@
                         <signal name="value-changed" handler="_onIntValueChanged" />
                     </object>
                 </child>
+                <child>
+                    <object class="GtkBox" id="old-style-label-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="old-style-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">3.38 dash and thumbnails</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="old-style-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Show dash and workspace thumbnails in boxes connected to the sides of the screen</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="old-style">
+                        <property name="name">old-style</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="panel-in-overview-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">7</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="panel-in-overview-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Visible panel in overview</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="panel-in-overview-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable top bar turning transparent in overview</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="panel-in-overview">
+                        <property name="name">panel-in-overview</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
             </object>
         </child>
         <child type="tab">

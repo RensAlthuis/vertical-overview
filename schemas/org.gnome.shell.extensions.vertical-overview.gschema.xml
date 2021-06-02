@@ -71,5 +71,15 @@
             <summary>Fixes for dash to panel</summary>
             <description></description>
         </key>
+        <key type="b" name="old-style">
+            <default>true</default>
+            <summary>Show dash and workspace thumbnails in boxes connected to the sides of the screen</summary>
+            <description></description>
+        </key>
+        <key type="b" name="panel-in-overview">
+            <default>true</default>
+            <summary>Disable top bar turning transparent in overview</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>
