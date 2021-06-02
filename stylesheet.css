@@ -1,3 +1,11 @@
+#dash.vertical-overview { 
+    color: #eeeeec; 
+    background-color: rgba(32, 32, 32, 0.76); 
+    border: 1px solid rgba(255, 255, 255, 0.16); 
+    padding: 0px 0; 
+    border-radius: 0 15px 15px 0; 
+    border-left-width: 0;
+}
 
 #dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps {
     padding: 0 !important;
@@ -22,5 +30,14 @@
 }
 
 #dash.vertical-overview .dash-item-container:last-child {
-    margin-bottom: 14px
+    margin-bottom: 0px;
+}
+
+.workspace-thumbnails { 
+    color: #eeeeec; 
+    background-color: rgba(32, 32, 32, 0.76); 
+    border: 1px solid rgba(255, 255, 255, 0.16); 
+    padding: 6px; 
+    border-radius: 10px 0 0 10px; 
+    border-right-width: 0; 
 }

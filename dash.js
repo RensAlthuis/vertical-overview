@@ -89,6 +89,8 @@ function set_to_vertical() {
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
     dash.x_align = Clutter.ActorAlign.START;
+    dash.y_align = Clutter.ActorAlign.CENTER;
+    dash._background.set_opacity(0);
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
@@ -158,6 +160,8 @@ function set_to_horizontal() {
     dash._dashContainer.y_expand = true;
     dash._dashContainer.x_expand = false;
     dash.x_align = Clutter.ActorAlign.CENTER;
+    dash.y_align = 0;
+    dash._background.set_opacity(255);
 
     dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 

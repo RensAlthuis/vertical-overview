@@ -240,6 +240,9 @@ var ThumbnailsBoxOverride = {
         childBox.x1 -= indicatorLeftFullBorder;
         childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
+
+        this.set_margin_top(32);
+        this.set_margin_bottom(32);
     }
 }
 
