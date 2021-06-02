@@ -41,3 +41,16 @@
     border-radius: 10px 0 0 10px; 
     border-right-width: 0; 
 }
+
+#panel { 
+    background-color: #000;
+}
+
+.panel-corner {
+    -panel-corner-radius: 9;
+    -panel-corner-background-color: #000;
+    -panel-corner-border-width: 2px;
+    -panel-corner-border-color: transparent;
+    -panel-corner-opacity: 1;
+}
+
