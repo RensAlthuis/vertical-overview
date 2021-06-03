@@ -47,6 +47,7 @@ function reset() {
     controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
     controlsManager._workspacesDisplay.reactive = true;
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
+    controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
 
 }
 

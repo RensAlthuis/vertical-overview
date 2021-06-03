@@ -96,6 +96,26 @@ function bindSettings() {
     Util.bindSetting('dash-to-panel-left-right-fix', (settings, label) => {
         global.vertical_overview.misc_dTPLeftRightFix = settings.get_boolean(label);
     });
+
+    Util.bindSetting('old-style', (settings, label) => {
+        global.vertical_overview.old_style_enabled = settings.get_boolean(label);
+        DashOverride.dash_old_style(settings, label);
+
+        let controlsManager = Main.overview._overview._controls;
+        if (settings.get_boolean(label)) {
+            controlsManager.set_style_class_name((controlsManager.style_class || "") + " vertical-overview-old-thumbnails");
+        } else {
+            controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
+        }
+    });
+
+    Util.bindSetting('panel-in-overview', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            Main.panel.set_style_class_name((Main.panel.style_class || "") + " vertical-overview-panel");
+        } else {
+            Main.panel.set_style_class_name((Main.panel.style_class || "").replace('vertical-overview-panel', ''));
+        }
+    });
 }
 
 function rebind_keys(self) {

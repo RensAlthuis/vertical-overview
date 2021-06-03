@@ -82,15 +82,19 @@ function set_to_vertical() {
     global.vertical_overview.dash_workId = dash._workId;
     dash._workId = Main.initializeDeferredWork(dash._box, dash._redisplay.bind(dash));
 
-    dash.set_style_class_name((dash.style_class || "") + " vertical-overview");
-
     dash._box.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.layout_manager.orientation = Clutter.Orientation.VERTICAL;
     dash._dashContainer.y_expand = false;
     dash._dashContainer.x_expand = true;
     dash.x_align = Clutter.ActorAlign.START;
     dash.y_align = Clutter.ActorAlign.CENTER;
-    dash._background.set_opacity(0);
+
+    if (global.vertical_overview.old_style_enabled) {
+        dash.set_style_class_name((dash.style_class || "") + " vertical-overview-old-dash");
+        dash._background.set_opacity(0);
+    } else {
+        dash.set_style_class_name((dash.style_class || "") + " vertical-overview");
+    }
 
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
@@ -121,7 +125,6 @@ function hide_dash(settings, label) {
 
 function show_apps_on_top(settings, label) {
     let dash = Main.overview._overview._controls.dash;
-
     if (settings.get_boolean(label)) {
         dash._dashContainer.set_child_at_index(dash._showAppsIcon, 0);
     } else {
@@ -152,6 +155,18 @@ function dash_move_labels(settings, label) {
     global.vertical_overview.dash_move_labels = settings.get_boolean(label);
 }
 
+function dash_old_style(settings, label) {
+    let dash = Main.overview._overview._controls.dash;
+    if (settings.get_boolean(label)) {
+        dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', 'vertical-overview-old-dash'));
+        if (global.vertical_overview.dash_override)
+            dash._background.set_opacity(0);
+    } else {
+        dash.set_style_class_name((dash.style_class || "").replace('vertical-overview-old-dash', 'vertical-overview'));
+        dash._background.set_opacity(255);
+    }
+}
+
 function set_to_horizontal() {
     let dash = Main.overview._overview._controls.dash;
     dash._workId = global.vertical_overview.dash_workId; //pretty sure this is a leak, but there no provided way to disconnect these...
@@ -164,7 +179,8 @@ function set_to_horizontal() {
     dash._background.set_opacity(255);
 
     dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
-
+    dash.set_style_class_name((dash.style_class || "").replace('-old-dash', ''));
+    
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();
     sizerBox.add_constraint(new Clutter.BindConstraint({

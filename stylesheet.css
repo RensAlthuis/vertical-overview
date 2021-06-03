@@ -1,4 +1,11 @@
-#dash.vertical-overview { 
+/* 40 style dash */
+#dash.vertical-overview .dash-item-container:last-child {
+    margin-bottom: 14px;
+}
+
+
+/* 3.38 style dash */
+#dash.vertical-overview-old-dash { 
     color: #eeeeec; 
     background-color: rgba(32, 32, 32, 0.76); 
     border: 1px solid rgba(255, 255, 255, 0.16); 
@@ -7,33 +14,42 @@
     border-left-width: 0;
 }
 
-#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps {
+#dash.vertical-overview-old-dash .dash-item-container:last-child {
+    margin-bottom: 0px;
+}
+
+
+/* General dash */
+#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps,
+#dash.vertical-overview-old-dash .dash-item-container .app-well-app, #dash.vertical-overview-old-dash .show-apps {
     padding: 0 !important;
 }
 
-#dash.vertical-overview .dash-separator {
+#dash.vertical-overview .dash-separator,
+#dash.vertical-overview-old-dash .dash-separator {
     height: 1px;
     margin-top: 14px;
     background-color: transparentize(#eeeeec,0.7);
 }
 
-#dash.vertical-overview .overview-icon {
+#dash.vertical-overview .overview-icon,
+#dash.vertical-overview-old-dash .overview-icon {
     padding: 10px;
 }
 
-#dash.vertical-overview .app-well-app-running-dot {
+#dash.vertical-overview .app-well-app-running-dot,
+#dash.vertical-overview-old-dash .app-well-app-running-dot {
     margin: 6px 0px;
 }
 
-#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps {
+#dash.vertical-overview .dash-item-container .app-well-app, #dash.vertical-overview .show-apps,
+#dash.vertical-overview-old-dash .dash-item-container .app-well-app, #dash.vertical-overview-old-dash .show-apps {
     padding-left: 14px;
 }
 
-#dash.vertical-overview .dash-item-container:last-child {
-    margin-bottom: 0px;
-}
 
-.workspace-thumbnails { 
+/* 3.38 style workspace thumbnails */
+.vertical-overview-old-thumbnails .workspace-thumbnails { 
     color: #eeeeec; 
     background-color: rgba(32, 32, 32, 0.76); 
     border: 1px solid rgba(255, 255, 255, 0.16); 
@@ -42,11 +58,13 @@
     border-right-width: 0; 
 }
 
-#panel { 
+
+/* Top bar */
+#panel.vertical-overview-panel { 
     background-color: #000;
 }
 
-.panel-corner {
+.vertical-overview-panel .panel-corner {
     -panel-corner-radius: 9;
     -panel-corner-background-color: #000;
     -panel-corner-border-width: 2px;

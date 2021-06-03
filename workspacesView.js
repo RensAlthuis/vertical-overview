@@ -125,6 +125,10 @@ var SecondaryMonitorDisplayOverride = {
             childBox.set_origin(width - rightOffset, 0);
             childBox.set_size(rightOffset, height);
             this._thumbnails.allocate(childBox);
+            if (global.vertical_overview.old_style_enabled) {
+                if (this.style_class.indexOf('vertical-overview-old-thumbnails') == -1)
+                    this.set_style_class_name((this.style_class || "") + " vertical-overview-old-thumbnails");
+            }
         }
 
         const {

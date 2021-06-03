@@ -7,7 +7,7 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const Util = Self.imports.util
+const Util = Self.imports.util;
 
 const NUM_WORKSPACES_THRESHOLD = 2;
 
@@ -241,8 +241,13 @@ var ThumbnailsBoxOverride = {
         childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
 
-        this.set_margin_top(32);
-        this.set_margin_bottom(32);
+        if (global.vertical_overview.old_style_enabled) {
+            this.set_margin_top(32);
+            this.set_margin_bottom(32);
+        } else {
+            this.set_margin_top(0);
+            this.set_margin_bottom(0);
+        }
     }
 }
 
