@@ -78,7 +78,7 @@
         </key>
         <key type="b" name="default-old-style">
             <default>true</default>
-            <summary>Show dash and workspace thumbnails in boxes connected to the sides of the screen</summary>
+            <summary>Disable this if you're using another pre-40 shell theme</summary>
             <description></description>
         </key>
         <key type="b" name="panel-in-overview">
