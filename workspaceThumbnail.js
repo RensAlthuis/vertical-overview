@@ -38,6 +38,15 @@ function reset() {
     Main.overview._overview._controls._thumbnailsBox.x_align = Clutter.ActorAlign.CENTER;
 }
 
+function thumbnails_old_style() {
+    let controlsManager = Main.overview._overview._controls;
+    if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
+        controlsManager.set_style_class_name((controlsManager.style_class || "") + " vertical-overview-old-thumbnails");
+    } else {
+        controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
+    }
+}
+
 var ThumbnailsBoxOverride = {
     _updateShouldShow: function() {
         const shouldShow = true;

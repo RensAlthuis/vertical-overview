@@ -288,11 +288,46 @@
                     </object>
                 </child>
                 <child>
-                    <object class="GtkBox" id="panel-in-overview-box">
+                    <object class="GtkBox" id="default-old-style-box">
                         <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
                         <layout>
                             <property name="column">0</property>
                             <property name="row">7</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="default-old-style-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Built-in old style</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="default-old-style-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable this if you're using another pre-40 shell theme</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="default-old-style">
+                        <property name="name">default-old-style</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="panel-in-overview-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">8</property>
                         </layout>
                         <child>
                             <object class="GtkLabel" id="panel-in-overview-label">
@@ -317,7 +352,7 @@
                         <property name="valign">GTK_ALIGN_CENTER</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">7</property>
+                            <property name="row">8</property>
                         </layout>
                         <signal name="notify::active" handler="_onBoolValueChanged" />
                     </object>

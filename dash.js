@@ -89,7 +89,7 @@ function set_to_vertical() {
     dash.x_align = Clutter.ActorAlign.START;
     dash.y_align = Clutter.ActorAlign.CENTER;
 
-    if (global.vertical_overview.old_style_enabled) {
+    if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
         dash.set_style_class_name((dash.style_class || "") + " vertical-overview-old-dash");
         dash._background.set_opacity(0);
     } else {
@@ -155,16 +155,30 @@ function dash_move_labels(settings, label) {
     global.vertical_overview.dash_move_labels = settings.get_boolean(label);
 }
 
-function dash_old_style(settings, label) {
+function dash_old_style() {
     let dash = Main.overview._overview._controls.dash;
-    if (settings.get_boolean(label)) {
-        dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', 'vertical-overview-old-dash'));
-        if (global.vertical_overview.dash_override)
+
+    if (global.vertical_overview.dash_override) {
+        if (global.vertical_overview.old_style_enabled) {
+            if (global.vertical_overview.default_old_style_enabled) {
+                dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
+                dash.set_style_class_name((dash.style_class || "") + " vertical-overview-old-dash");
+            } else {
+                dash_disable_style();
+            }
             dash._background.set_opacity(0);
-    } else {
-        dash.set_style_class_name((dash.style_class || "").replace('vertical-overview-old-dash', 'vertical-overview'));
-        dash._background.set_opacity(255);
+        } else {
+            dash.set_style_class_name((dash.style_class || "").replace('vertical-overview-old-dash', ''));
+            dash.set_style_class_name((dash.style_class || "") + " vertical-overview");
+            dash._background.set_opacity(255);
+        }
     }
+}
+
+function dash_disable_style() {
+    let dash = Main.overview._overview._controls.dash;
+    dash.set_style_class_name((dash.style_class || "").replace('vertical-overview-old-dash', ''));
+    dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
 }
 
 function set_to_horizontal() {
@@ -178,8 +192,7 @@ function set_to_horizontal() {
     dash.y_align = 0;
     dash._background.set_opacity(255);
 
-    dash.set_style_class_name((dash.style_class || "").replace('vertical-overview', ''));
-    dash.set_style_class_name((dash.style_class || "").replace('-old-dash', ''));
+    dash_disable_style();
     
     let sizerBox = dash._background.get_children()[0];
     sizerBox.clear_constraints();

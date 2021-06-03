@@ -97,16 +97,16 @@ function bindSettings() {
         global.vertical_overview.misc_dTPLeftRightFix = settings.get_boolean(label);
     });
 
+    Util.bindSetting('default-old-style', (settings, label) => {
+        global.vertical_overview.default_old_style_enabled = settings.get_boolean(label);
+        DashOverride.dash_old_style();
+        WorkspaceThumbnailOverrides.thumbnails_old_style();
+    });
+    
     Util.bindSetting('old-style', (settings, label) => {
         global.vertical_overview.old_style_enabled = settings.get_boolean(label);
-        DashOverride.dash_old_style(settings, label);
-
-        let controlsManager = Main.overview._overview._controls;
-        if (settings.get_boolean(label)) {
-            controlsManager.set_style_class_name((controlsManager.style_class || "") + " vertical-overview-old-thumbnails");
-        } else {
-            controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
-        }
+        DashOverride.dash_old_style();
+        WorkspaceThumbnailOverrides.thumbnails_old_style();
     });
 
     Util.bindSetting('panel-in-overview', (settings, label) => {

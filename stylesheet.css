@@ -14,6 +14,10 @@
     border-left-width: 0;
 }
 
+.vertical-overview-old-dash .show-apps:active .overview-icon, .show-apps:checked .overview-icon {
+    background-color: rgba(7, 7, 7, 0.46);
+}
+
 #dash.vertical-overview-old-dash .dash-item-container:last-child {
     margin-bottom: 0px;
 }
