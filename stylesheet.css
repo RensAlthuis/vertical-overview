@@ -11,7 +11,7 @@
 }
 
 #dash.vertical-overview .dash-background {
-	opacity: 255;
+	opacity: 1;
 }
 
 #dash.vertical-overview .overview-icon {
@@ -61,7 +61,7 @@
 }
 
 #panel.vertical-overview .panel-corner {
-	-panel-corner-radius: 9;
+	-panel-corner-radius: 9px;
 	-panel-corner-background-color: #000;
 	-panel-corner-border-width: 2px;
 	-panel-corner-border-color: transparent;
