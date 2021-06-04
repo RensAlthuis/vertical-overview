@@ -146,6 +146,9 @@ var ThumbnailsBoxOverride = {
     },
 
     vfunc_allocate: function(box) {
+        //set top and bottom margin
+        box.y1 += 16;
+        box.y2 -= 32;
         this.set_allocation(box);
 
         if (this._thumbnails.length == 0) // not visible
@@ -249,14 +252,6 @@ var ThumbnailsBoxOverride = {
         childBox.x1 -= indicatorLeftFullBorder;
         childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
-
-        if (global.vertical_overview.old_style_enabled) {
-            this.set_margin_top(32);
-            this.set_margin_bottom(32);
-        } else {
-            this.set_margin_top(0);
-            this.set_margin_bottom(0);
-        }
     }
 }
 
