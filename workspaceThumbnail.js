@@ -258,10 +258,12 @@ var ThumbnailsBoxOverride = {
 var WorkspaceThumbnailOverride = {
     after__init: function () {
         this._bgManager = new Background.BackgroundManager({
-            monitorIndex: Main.layoutManager.primaryIndex,
+            monitorIndex: this.monitorIndex,
             container: this._viewport,
-            vignette: false
+            vignette: false,
+            controlPosition: false,
         });
+        this._viewport.set_child_below_sibling(this._bgManager.backgroundActor, null);
 
         this.connect('destroy', (function () {
             this._bgManager.destroy();
