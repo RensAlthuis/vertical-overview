@@ -7,7 +7,7 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const Util = Self.imports.util
+const Util = Self.imports.util;
 
 const NUM_WORKSPACES_THRESHOLD = 2;
 
@@ -36,6 +36,15 @@ function reset() {
     Util.overrideProto(WorkspaceThumbnail.ThumbnailsBox.prototype, global.vertical_overview.GSFunctions['ThumbnailsBox']);
     Util.overrideProto(WorkspaceThumbnail.WorkspaceThumbnail.prototype, global.vertical_overview.GSFunctions['WorkspaceThumbnail']);
     Main.overview._overview._controls._thumbnailsBox.x_align = Clutter.ActorAlign.CENTER;
+}
+
+function thumbnails_old_style() {
+    let controlsManager = Main.overview._overview._controls;
+    if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
+        controlsManager.set_style_class_name((controlsManager.style_class || "") + " vertical-overview-old-thumbnails");
+    } else {
+        controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
+    }
 }
 
 var ThumbnailsBoxOverride = {
@@ -240,6 +249,14 @@ var ThumbnailsBoxOverride = {
         childBox.x1 -= indicatorLeftFullBorder;
         childBox.x2 += indicatorRightFullBorder;
         this._indicator.allocate(childBox);
+
+        if (global.vertical_overview.old_style_enabled) {
+            this.set_margin_top(32);
+            this.set_margin_bottom(32);
+        } else {
+            this.set_margin_top(0);
+            this.set_margin_bottom(0);
+        }
     }
 }
 

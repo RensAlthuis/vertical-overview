@@ -22,12 +22,12 @@ const animateAllocation = imports.ui.workspace.animateAllocation;
 var staticBackgroundEnabled = false;
 function staticBackgroundOverride() {
     if (!staticBackgroundEnabled) {
-        global.vertical_overview.bgManagers = []
+        global.vertical_overview.bgManagers = [];
         for (var monitor of Main.layoutManager.monitors) {
             let bgManager = new Background.BackgroundManager({
                 monitorIndex: monitor.index,
                 container: Main.layoutManager.overviewGroup,
-            })
+            });
 
             bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
                 bgManager.backgroundActor.opacity = Util.lerp(255, 100, Math.min(v.value, 1));
