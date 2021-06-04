@@ -102,7 +102,7 @@ function bindSettings() {
         DashOverride.dash_old_style();
         WorkspaceThumbnailOverrides.thumbnails_old_style();
     });
-    
+
     Util.bindSetting('old-style', (settings, label) => {
         global.vertical_overview.old_style_enabled = settings.get_boolean(label);
         DashOverride.dash_old_style();
@@ -110,11 +110,7 @@ function bindSettings() {
     });
 
     Util.bindSetting('panel-in-overview', (settings, label) => {
-        if (settings.get_boolean(label)) {
-            Main.panel.set_style_class_name((Main.panel.style_class || "") + " vertical-overview-panel");
-        } else {
-            Main.panel.set_style_class_name((Main.panel.style_class || "").replace('vertical-overview-panel', ''));
-        }
+        Util.toggleCSS(Main.panel, "vertical-overview", settings.get_boolean(label) ? "on" : "off");
     });
 }
 

@@ -18,11 +18,18 @@ function override() {
     log('You may see an error below,\nSecondaryMonitorDisplay is defined as const for some reason.\nSince I\'m overriding values in that const an error show might show up.\n Feel free to ignore it');
     global.vertical_overview.GSFunctions['SecondaryMonitorDisplay'] = Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, SecondaryMonitorDisplayOverride);
     log('Thank you, please carry on');
+
+    if (global.vertical_overview.default_old_style_enabled) {
+        Util.toggleCSS(Main.overview._overview._controls._workspacesDisplay, "vertical-overview", 'on');
+    }
 }
 
 function reset() {
     Util.overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
     Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, global.vertical_overview.GSFunctions['SecondaryMonitorDisplay']);
+    if (global.vertical_overview.default_old_style_enabled) {
+        Util.toggleCSS(Main.overview._overview._controls._workspacesDisplay, "vertical-overview", 'off');
+    }
 }
 
 var WorkspacesViewOverride = {
@@ -125,10 +132,6 @@ var SecondaryMonitorDisplayOverride = {
             childBox.set_origin(width - rightOffset, 0);
             childBox.set_size(rightOffset, height);
             this._thumbnails.allocate(childBox);
-            if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
-                if (this.style_class.indexOf('vertical-overview-old-thumbnails') == -1)
-                    this.set_style_class_name((this.style_class || "") + " vertical-overview-old-thumbnails");
-            }
         }
 
         const {

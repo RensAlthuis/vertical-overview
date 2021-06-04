@@ -39,11 +39,11 @@ function reset() {
 }
 
 function thumbnails_old_style() {
-    let controlsManager = Main.overview._overview._controls;
+    let thumbnailsBox = Main.overview._overview._controls._thumbnailsBox;
     if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
-        controlsManager.set_style_class_name((controlsManager.style_class || "") + " vertical-overview-old-thumbnails");
+        Util.toggleCSS(thumbnailsBox, 'vertical-overview', 'on');
     } else {
-        controlsManager.set_style_class_name((controlsManager.style_class || "").replace('vertical-overview-old-thumbnails', ''));
+        Util.toggleCSS(thumbnailsBox, 'vertical-overview', 'off');
     }
 }
 
