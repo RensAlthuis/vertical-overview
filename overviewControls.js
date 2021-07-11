@@ -37,6 +37,7 @@ function override() {
 
     let controlsManager = Main.overview._overview._controls;
     global.vertical_overview._updateID = controlsManager._stateAdjustment.connect("notify::value", _updateWorkspacesDisplay.bind(controlsManager));
+    globa.vertical_overview._workspaceDisplayVisbleID = controlsManager._workspacesDisplay.connect("notify::visible", controlsManager._workspacesDisplay._updateWorkspacesViews.bind(controlsManager._workspacesDisplay));
 }
 
 function reset() {
@@ -45,6 +46,7 @@ function reset() {
 
     let controlsManager = Main.overview._overview._controls;
     controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
+    controlsManager._workspacesDisplay.disconnect(global.vertical_overview._workspaceDisplayVisbleID);
     controlsManager._workspacesDisplay.reactive = true;
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
 }
@@ -336,18 +338,14 @@ function _updateWorkspacesDisplay() {
     let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
-    let workspacesDisplayVisible =
-        finalState == ControlsState.HIDDEN ||
-        (finalState == ControlsState.WINDOW_PICKER ||
-            (initialState == ControlsState.WINDOW_PICKER && progress != 1)) &&
-        !searchActive;
-
+    let workspacesDisplayVisible = opacity != 0;
     let params = {
-        opacity: !searchActive? opacity : 0,
+        opacity: opacity,
         scale: scale,
         duration: 0,
         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
         onComplete: () => {
+            this._workspacesDisplay.visible = !(progress == 1 && finalState == ControlsState.APP_GRID);
             this._workspacesDisplay.reactive = workspacesDisplayVisible;
             this._workspacesDisplay.setPrimaryWorkspaceVisible(workspacesDisplayVisible);
         }
