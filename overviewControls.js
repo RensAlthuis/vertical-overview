@@ -37,7 +37,7 @@ function override() {
 
     let controlsManager = Main.overview._overview._controls;
     global.vertical_overview._updateID = controlsManager._stateAdjustment.connect("notify::value", _updateWorkspacesDisplay.bind(controlsManager));
-    globa.vertical_overview._workspaceDisplayVisbleID = controlsManager._workspacesDisplay.connect("notify::visible", controlsManager._workspacesDisplay._updateWorkspacesViews.bind(controlsManager._workspacesDisplay));
+    global.vertical_overview._workspaceDisplayVisibleID = controlsManager._workspacesDisplay.connect("notify::visible", controlsManager._workspacesDisplay._updateWorkspacesViews.bind(controlsManager._workspacesDisplay));
 }
 
 function reset() {
@@ -46,7 +46,7 @@ function reset() {
 
     let controlsManager = Main.overview._overview._controls;
     controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
-    controlsManager._workspacesDisplay.disconnect(global.vertical_overview._workspaceDisplayVisbleID);
+    controlsManager._workspacesDisplay.disconnect(global.vertical_overview._workspaceDisplayVisibleID);
     controlsManager._workspacesDisplay.reactive = true;
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
 }
@@ -338,7 +338,7 @@ function _updateWorkspacesDisplay() {
     let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
-    let workspacesDisplayVisible = opacity != 0;
+    let workspacesDisplayVisible = (opacity != 0) && !(searchActive);
     let params = {
         opacity: opacity,
         scale: scale,
