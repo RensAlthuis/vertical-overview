@@ -127,9 +127,6 @@ WorkspaceOverride = {
         this.connect('style-changed', this._onStyleChanged.bind(this));
         this.connect('destroy', this._onDestroy.bind(this));
 
-        // Workaround for
-        // [40.4-1 breaks extension #64] 
-        // https://github.com/RensAlthuis/vertical-overview/issues/64
         this._skipTaskbarSignals = new Map();
 
         const windows = global.get_window_actors().map(a => a.meta_window)
