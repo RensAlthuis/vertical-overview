@@ -110,8 +110,9 @@ var ControlsManagerLayoutOverride = {
     vfunc_allocate: function(container, box) {
         const childBox = new Clutter.ActorBox();
 
-        var leftOffset = this.leftOffset;
-        let rightOffset = this.rightOffset;
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        var leftOffset = this.leftOffset * scaleFactor;
+        let rightOffset = this.rightOffset * scaleFactor;
 
         const { spacing } = this;
 
