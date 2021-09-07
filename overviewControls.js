@@ -213,8 +213,8 @@ var ControlsManagerLayoutOverride = {
         }
 
         // Search
-        childBox.set_origin(0, startY + searchHeight + spacing);
-        childBox.set_size(width, availableHeight);
+        childBox.set_origin(leftOffset, startY + searchHeight + spacing);
+        childBox.set_size(width - leftOffset - rightOffset, availableHeight);
         this._searchController.allocate(childBox);
         this._runPostAllocation();
     }
