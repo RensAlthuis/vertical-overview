@@ -27,10 +27,12 @@ function staticBackgroundOverride() {
             let bgManager = new Background.BackgroundManager({
                 monitorIndex: monitor.index,
                 container: Main.layoutManager.overviewGroup,
+                vignette: true,
             });
 
             bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-                bgManager.backgroundActor.opacity = Util.lerp(255, 100, Math.min(v.value, 1));
+                bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
+                bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
             });
 
             global.vertical_overview.bgManagers.push(bgManager);
