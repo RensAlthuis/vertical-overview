@@ -9,3 +9,7 @@ clean:
 
 install:
 	gnome-extensions install -f ./_build/vertical-overview@RensAlthuis.github.com
+
+install-dev:
+	rm -rf ${HOME}/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com
+	ln -s $(shell pwd) ${HOME}/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com
