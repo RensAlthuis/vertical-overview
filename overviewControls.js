@@ -254,26 +254,24 @@ var ControlsManagerOverride = {
 
     _updateThumbnailsBox: function(animate = false) {
         const { shouldShow } = this._thumbnailsBox;
-        const { searchActive } = this._searchController;
-        const [opacity, scale] = this._getThumbnailsBoxParams();
+        const [opacity, scale, translationY] = this._getThumbnailsBoxParams();
 
-        const thumbnailsBoxVisible = shouldShow && !searchActive && opacity !== 0;
+        const thumbnailsBoxVisible = shouldShow && opacity !== 0;
         if (thumbnailsBoxVisible) {
-            this._thumbnailsBox.opacity = 0;
+            this._thumbnailsBox.opacity = 255;
             this._thumbnailsBox.visible = thumbnailsBoxVisible;
         }
 
         const params = {
-            opacity: searchActive ? 0 : opacity,
+            opacity: opacity,
             duration: animate ? SIDE_CONTROLS_ANIMATION_TIME : 0,
             mode: Clutter.AnimationMode.EASE_OUT_QUAD,
             onComplete: () => (this._thumbnailsBox.visible = thumbnailsBoxVisible)
         };
 
-        if (!searchActive) {
-            params.scale_x = scale;
-            params.scale_y = scale;
-        }
+        params.scale_x = scale;
+        params.scale_y = scale;
+        params.translation_y = translationY;
 
         this._thumbnailsBox.ease(params);
     },
