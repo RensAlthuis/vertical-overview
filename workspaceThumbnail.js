@@ -41,9 +41,9 @@ function reset() {
 function thumbnails_old_style() {
     let thumbnailsBox = Main.overview._overview._controls._thumbnailsBox;
     if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
-        Util.toggleCSS(thumbnailsBox, 'vertical-overview', 'on');
+        thumbnailsBox.add_style_class_name("vertical-overview");
     } else {
-        Util.toggleCSS(thumbnailsBox, 'vertical-overview', 'off');
+        thumbnailsBox.remove_style_class_name("vertical-overview");
     }
 }
 

@@ -20,7 +20,7 @@ function override() {
     log('Thank you, please carry on');
 
     if (global.vertical_overview.default_old_style_enabled) {
-        Util.toggleCSS(Main.overview._overview._controls._workspacesDisplay, "vertical-overview", 'on');
+        Main.overview._overview._controls._workspacesDisplay.add_style_class_name("vertical-overview");
     }
 }
 
@@ -28,7 +28,7 @@ function reset() {
     Util.overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
     Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, global.vertical_overview.GSFunctions['SecondaryMonitorDisplay']);
     if (global.vertical_overview.default_old_style_enabled) {
-        Util.toggleCSS(Main.overview._overview._controls._workspacesDisplay, "vertical-overview", 'off');
+        Main.overview._overview._controls._workspacesDisplay.remove_style_class_name("vertical-overview");
     }
 }
 

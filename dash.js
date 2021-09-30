@@ -89,9 +89,9 @@ function set_to_vertical() {
     dash.x_align = Clutter.ActorAlign.START;
     dash.y_align = Clutter.ActorAlign.CENTER;
 
-    Util.toggleCSS(dash, "vertical-overview", "on");
+    dash.add_style_class_name("vertical-overview");
     if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
-        Util.toggleCSS(dash, "vertical-overview-old-dash", "on");
+        dash.add_style_class_name("vertical-overview-old-dash");
     }
 
     let sizerBox = dash._background.get_children()[0];
@@ -157,21 +157,24 @@ function dash_old_style() {
     let dash = Main.overview._overview._controls.dash;
 
     if (global.vertical_overview.dash_override) {
-        Util.toggleCSS(dash, 'vertical-overview',
-            (global.vertical_overview.default_old_style_enabled) ? 'on' : 'off');
+        if (global.vertical_overview.default_old_style_enabled) {
+            dash.add_style_class_name("vertical-overview");
+        } else {
+            dash.remove_style_class_name("vertical-overview");
+        }
 
         if (global.vertical_overview.old_style_enabled) {
-            Util.toggleCSS(dash, 'vertical-overview-old-dash', 'on');
+            dash.add_style_class_name("vertical-overview-old-dash");
         } else {
-            Util.toggleCSS(dash, 'vertical-overview-old-dash', "off");
+            dash.remove_style_class_name("vertical-overview-old-dash");
         }
     }
 }
 
 function dash_disable_style() {
     let dash = Main.overview._overview._controls.dash;
-    Util.toggleCSS(dash, 'vertical-overview', "off");
-    Util.toggleCSS(dash, 'vertical-overview-old-dash', "off");
+    dash.remove_style_class_name("vertical-overview");
+    dash.remove_style_class_name("vertical-overview-old-dash");
 }
 
 function set_to_horizontal() {

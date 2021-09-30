@@ -109,25 +109,3 @@ function unbindSetting(label, callback) {
         delete settings.callbacks[label];
     }
 }
-
-
-/**
- *
- * @param {GObject} object
- * @param {string} className
- * @param {'on' | 'off'} force
- */
-function toggleCSS(object, className = 'vertical-overview', force = null) {
-    let classes = object.get_style_class_name()?.split(' ') || [];
-
-    let idx = classes.indexOf(className);
-    if (idx === -1) {
-        if (force !== 'off') {
-            classes.push(className)
-        }
-    } else if (force !== 'on') {
-        classes.splice(idx, 1);
-    }
-
-    object.set_style_class_name(classes.join(' '));
-}

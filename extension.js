@@ -110,7 +110,11 @@ function bindSettings() {
     });
 
     Util.bindSetting('panel-in-overview', (settings, label) => {
-        Util.toggleCSS(Main.panel, "vertical-overview", settings.get_boolean(label) ? "on" : "off");
+        if (settings.get_boolean(label)) {
+            Main.panel.add_style_class_name("vertical-overview");
+        } else {
+            Main.panel.remove_style_class_name("vertical-overview");
+        }
     });
 }
 
