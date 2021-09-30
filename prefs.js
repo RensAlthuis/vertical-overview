@@ -10,7 +10,7 @@ const BuilderScope = GObject.registerClass({
 }, class BuilderScope extends GObject.Object {
     _init() {
         super._init()
-        this.settings = Util.getSettings('org.gnome.shell.extensions.vertical-overview');
+        this.settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vertical-overview');
     }
 
     vfunc_create_closure(builder, handlerName, flags, connectObject) {
@@ -50,7 +50,7 @@ function buildPrefsWidget() {
     builder.set_translation_domain('gettext-domain');
     builder.add_from_file(Self.dir.get_path() + '/settings.ui');
 
-    let settings = Util.getSettings('org.gnome.shell.extensions.vertical-overview');
+    let settings = ExtensionUtils.getSettings('org.gnome.shell.extensions.vertical-overview');
     for (var key of settings.list_keys()) {
         let obj = builder.get_object(key);
         let value = settings.get_value(key);
