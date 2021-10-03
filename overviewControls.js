@@ -53,12 +53,14 @@ function reset() {
 
 function enterOverviewAnimation() {
     let controlsManager = Main.overview._overview._controls;
-    
-    controlsManager.dash.translation_x = -controlsManager.dash.width;
-    controlsManager.dash.ease({
-        translation_x: 0,
-        duration: Overview.ANIMATION_TIME,
-    });
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.translation_x = -controlsManager.dash.width;
+        controlsManager.dash.ease({
+            translation_x: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
             
     controlsManager._searchEntry.opacity = 0;
     controlsManager._searchEntry.ease({
@@ -68,13 +70,13 @@ function enterOverviewAnimation() {
             
     const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
     const rightOffset = controlsManager.layoutManager.rightOffset * scaleFactor;
-            
+
     controlsManager._thumbnailsBox.translation_x = rightOffset;
     controlsManager._thumbnailsBox.ease({
         translation_x: 0,
         duration: Overview.ANIMATION_TIME,
     });
-            
+    
     controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
         if (i != Main.layoutManager.primaryIndex) {
             let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
@@ -89,11 +91,13 @@ function enterOverviewAnimation() {
 
 function exitOverviewAnimation() {
     let controlsManager = Main.overview._overview._controls;
-    
-    controlsManager.dash.ease({
-        translation_x: -controlsManager.dash.width,
-        duration: Overview.ANIMATION_TIME,
-    });
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.ease({
+            translation_x: -controlsManager.dash.width,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
     
     controlsManager._searchEntry.ease({
         opacity: 0,
