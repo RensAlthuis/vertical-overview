@@ -74,6 +74,7 @@ function bindSettings() {
     });
 
     Util.bindSetting('scaling-workspace-background', (settings, label) => {
+        global.vertical_overview.scaling_workspaces_hidden = settings.get_boolean(label);
         if (settings.get_boolean(label)) {
             WorkspaceOverrides.scalingWorkspaceBackgroundOverride();
         } else {

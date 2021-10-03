@@ -51,6 +51,70 @@ function reset() {
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
 }
 
+function enterOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+    
+    controlsManager.dash.translation_x = -controlsManager.dash.width;
+    controlsManager.dash.ease({
+        translation_x: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+            
+    controlsManager._searchEntry.opacity = 0;
+    controlsManager._searchEntry.ease({
+        opacity: 255,
+        duration: Overview.ANIMATION_TIME,
+    });
+            
+    const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+    const rightOffset = controlsManager.layoutManager.rightOffset * scaleFactor;
+            
+    controlsManager._thumbnailsBox.translation_x = rightOffset;
+    controlsManager._thumbnailsBox.ease({
+        translation_x: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+            
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+            workspace._thumbnails.translation_x = rightOffset * scale;
+            workspace._thumbnails.ease({
+                translation_x: 0,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
+}
+
+function exitOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+    
+    controlsManager.dash.ease({
+        translation_x: -controlsManager.dash.width,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._searchEntry.ease({
+        opacity: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._thumbnailsBox.ease({
+        translation_x: controlsManager._thumbnailsBox.width,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            workspace._thumbnails.ease({
+                translation_x: workspace._thumbnails.width,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
+}
+
 var ControlsManagerLayoutOverride = {
     _computeWorkspacesBoxForState: function (state, box, startY, searchHeight, leftOffset, rightOffset) {
         const workspaceBox = box.copy();
@@ -301,40 +365,12 @@ var ControlsManagerOverride = {
 
         this.dash.showAppsButton.checked =
             state === ControlsState.APP_GRID;
-
-        this._ignoreShowAppsButtonToggle = false;
-
-        this.dash.translation_x = -this.dash.width;
-        this.dash.ease({
-            translation_x: 0,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        this._searchEntry.opacity = 0;
-        this._searchEntry.ease({
-            opacity: 255,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
-        const rightOffset = Main.overview._overview._controls.layoutManager.rightOffset * scaleFactor;
         
-        this._thumbnailsBox.translation_x = rightOffset;
-        this._thumbnailsBox.ease({
-            translation_x: 0,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        this._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
-            if (i != Main.layoutManager.primaryIndex) {
-                let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
-                workspace._thumbnails.translation_x = rightOffset * scale;
-                workspace._thumbnails.ease({
-                    translation_x: 0,
-                    duration: Overview.ANIMATION_TIME,
-                });
-            }
-        });
+        this._ignoreShowAppsButtonToggle = false;
+        
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            enterOverviewAnimation();
+        }
     },
     
     animateFromOverview: function(callback) {
@@ -355,30 +391,10 @@ var ControlsManagerOverride = {
                     callback();
             },
         });
-
-        this.dash.ease({
-            translation_x: -this.dash.width,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        this._searchEntry.ease({
-            opacity: 0,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        this._thumbnailsBox.ease({
-            translation_x: this._thumbnailsBox.width,
-            duration: Overview.ANIMATION_TIME,
-        });
-
-        this._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
-            if (i != Main.layoutManager.primaryIndex) {
-                workspace._thumbnails.ease({
-                    translation_x: workspace._thumbnails.width,
-                    duration: Overview.ANIMATION_TIME,
-                });
-            }
-        });
+        
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            exitOverviewAnimation();
+        }
     }
 }
 

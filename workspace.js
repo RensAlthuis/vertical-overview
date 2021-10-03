@@ -64,6 +64,12 @@ function scalingWorkspaceBackgroundReset() {
     if (scalingWorkspaceBackgroundEnabled) {
         _Util.overrideProto(Workspace.Workspace.prototype, global.vertical_overview.GSFunctions['Workspace']);
         scalingWorkspaceBackgroundEnabled = false;
+
+        // Ensure that variables used by overview entry / exit animation have their proper values when the animation is disabled
+        let controlsManager = Main.overview._overview._controls;
+        controlsManager.dash.translation_x = 0;
+        controlsManager._searchEntry.opacity = 255;
+        controlsManager._thumbnailsBox.translation_x = 0;
     }
 }
 
