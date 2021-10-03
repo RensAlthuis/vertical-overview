@@ -335,6 +335,50 @@ var ControlsManagerOverride = {
                 });
             }
         });
+    },
+    
+    animateFromOverview: function(callback) {
+        this._ignoreShowAppsButtonToggle = true;
+
+        this._workspacesDisplay.prepareToLeaveOverview();
+        if (!this._workspacesDisplay.activeWorkspaceHasMaximizedWindows())
+            Main.overview.fadeInDesktop();
+
+        this._stateAdjustment.ease(ControlsState.HIDDEN, {
+            duration: Overview.ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: () => {
+                this.dash.showAppsButton.checked = false;
+                this._ignoreShowAppsButtonToggle = false;
+
+                if (callback)
+                    callback();
+            },
+        });
+
+        this.dash.ease({
+            translation_x: -this.dash.width,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        this._searchEntry.ease({
+            opacity: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        this._thumbnailsBox.ease({
+            translation_x: this._thumbnailsBox.width,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        this._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+            if (i != Main.layoutManager.primaryIndex) {
+                workspace._thumbnails.ease({
+                    translation_x: workspace._thumbnails.width,
+                    duration: Overview.ANIMATION_TIME,
+                });
+            }
+        });
     }
 }
 
