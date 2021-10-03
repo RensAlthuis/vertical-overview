@@ -303,6 +303,38 @@ var ControlsManagerOverride = {
             state === ControlsState.APP_GRID;
 
         this._ignoreShowAppsButtonToggle = false;
+
+        this.dash.translation_x = -this.dash.width;
+        this.dash.ease({
+            translation_x: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        this._searchEntry.opacity = 0;
+        this._searchEntry.ease({
+            opacity: 255,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        const rightOffset = Main.overview._overview._controls.layoutManager.rightOffset * scaleFactor;
+        
+        this._thumbnailsBox.translation_x = rightOffset;
+        this._thumbnailsBox.ease({
+            translation_x: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+
+        this._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+            if (i != Main.layoutManager.primaryIndex) {
+                let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+                workspace._thumbnails.translation_x = rightOffset * scale;
+                workspace._thumbnails.ease({
+                    translation_x: 0,
+                    duration: Overview.ANIMATION_TIME,
+                });
+            }
+        });
     }
 }
 
@@ -334,7 +366,7 @@ function _updateWorkspacesDisplay() {
     let initialParams = paramsForState(initialState);
     let finalParams = paramsForState(finalState);
 
-    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
+    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress));
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
     let workspacesDisplayVisible = (opacity != 0) && !(searchActive);
