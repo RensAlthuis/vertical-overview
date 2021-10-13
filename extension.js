@@ -111,9 +111,28 @@ function bindSettings() {
 
     Util.bindSetting('panel-in-overview', (settings, label) => {
         if (settings.get_boolean(label)) {
-            Main.panel.add_style_class_name("vertical-overview");
+            if (global.vertical_overview.panel_signal_found) {
+                global.vertical_overview.panel_signal.disconnected = true;
+            } else {
+                const callbackString = "()=>{this.add_style_pseudo_class('overview');}";
+                let i = 0;
+                while (i < Main.overview._signalConnections.length) {
+                    const signal = Main.overview._signalConnections[i];
+                    if (signal.name == 'showing') {
+                        if (signal.callback.toString().replace(/[\ \n]/g, "") == callbackString) {
+                            global.vertical_overview.panel_signal = signal;
+                            global.vertical_overview.panel_signal_found = true;
+                            signal.disconnected = true;
+                            break;
+                        }
+                    }
+                    i++;
+                }
+            }
         } else {
-            Main.panel.remove_style_class_name("vertical-overview");
+            if (global.vertical_overview.panel_signal_found) {
+                global.vertical_overview.panel_signal.disconnected = false;
+            }
         }
     });
 }

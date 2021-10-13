@@ -78,19 +78,6 @@
 	margin-left: 0px;
 }
 
-/* Top bar */
-#panel.vertical-overview {
-	background-color: #000;
-}
-
-#panel.vertical-overview .panel-corner {
-	-panel-corner-radius: 9px;
-	-panel-corner-background-color: #000;
-	-panel-corner-border-width: 2px;
-	-panel-corner-border-color: transparent;
-	-panel-corner-opacity: 1;
-}
-
 /* 3.38 style workspace thumbnails */
 .vertical-overview.workspace-thumbnails {
 	color: #eeeeec;
