@@ -21,13 +21,13 @@ function enable() {
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
     global.vertical_overview = {};
     global.vertical_overview.GSFunctions = {};
+    global.vertical_overview.gestures_bound = false;
     bindSettings();
 
     OverviewControlsOverride.override();
     WorkspacesViewOverrides.override();
     WorkspaceThumbnailOverrides.override();
     WorkspaceOverrides.override();
-    Gestures.override();
     DashOverride.override();
 
     //this is the magic function that switches the internal layout to vertical
@@ -134,6 +134,13 @@ function bindSettings() {
             if (global.vertical_overview.panel_signal_found) {
                 global.vertical_overview.panel_signal.disconnected = false;
             }
+        }
+    });
+    Util.bindSetting('disable-swipe-gestures', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            Gestures.reset();
+        } else {
+            Gestures.override();
         }
     });
 }

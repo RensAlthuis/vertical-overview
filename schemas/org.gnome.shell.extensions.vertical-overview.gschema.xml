@@ -86,5 +86,10 @@
             <summary>Disable top bar turning transparent in overview</summary>
             <description></description>
         </key>
+        <key type="b" name="disable-swipe-gestures">
+            <default>false</default>
+            <summary>Disable swipe gesture overrides to use your own.</summary>
+            <description></description>
+        </key>
     </schema>
 </schemalist>
