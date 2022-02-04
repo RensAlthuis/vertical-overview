@@ -252,6 +252,111 @@
                         <signal name="value-changed" handler="_onIntValueChanged" />
                     </object>
                 </child>
+                <child>
+                    <object class="GtkBox" id="old-style-label-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="old-style-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">3.38 dash and thumbnails</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="old-style-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Show dash and workspace thumbnails in boxes connected to the sides of the screen</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="old-style">
+                        <property name="name">old-style</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">6</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="default-old-style-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">7</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="default-old-style-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Built-in old style</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="default-old-style-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable this if you're using another pre-40 shell theme</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="default-old-style">
+                        <property name="name">default-old-style</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">7</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkBox" id="panel-in-overview-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">8</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="panel-in-overview-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Visible panel in overview</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="panel-in-overview-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable top bar turning transparent in overview</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="panel-in-overview">
+                        <property name="name">panel-in-overview</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">8</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
             </object>
         </child>
         <child type="tab">
@@ -269,12 +374,47 @@
                 <property name="margin-end">10</property>
                 <property name="vexpand">true</property>
                 <child>
+                    <object class="GtkBox" id="override-dash-label-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="override-dash-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Enable dash overrides</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="override-dash-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable if you use another extension that replaces the dash</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="override-dash">
+                        <property name="name">override-dash</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+                <child>
                     <object class="GtkBox" id="dash-max-height-label-box">
                         <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
                         <property name="hexpand">true</property>
                         <layout>
                             <property name="column">0</property>
-                            <property name="row">0</property>
+                            <property name="row">1</property>
                         </layout>
                         <child>
                             <object class="GtkLabel" id="dash-max-height-label">
@@ -298,44 +438,9 @@
                         <property name="adjustment">dash-max-height-adjustment</property>
                         <layout>
                             <property name="column">1</property>
-                            <property name="row">0</property>
+                            <property name="row">1</property>
                         </layout>
                         <signal name="value-changed" handler="_onIntValueChanged" />
-                    </object>
-                </child>
-                <child>
-                    <object class="GtkBox" id="override-dash-label-box">
-                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
-                        <layout>
-                            <property name="column">0</property>
-                            <property name="row">1</property>
-                        </layout>
-                        <child>
-                            <object class="GtkLabel" id="override-dash-label">
-                                <property name="css-classes">body</property>
-                                <property name="halign">GTK_ALIGN_START</property>
-                                <property name="label">Override dash</property>
-                            </object>
-                        </child>
-                        <child>
-                            <object class="GtkLabel" id="override-dash-description">
-                                <property name="css-classes">caption</property>
-                                <property name="halign">GTK_ALIGN_START</property>
-                                <property name="label">Disable if you use an extension that replaces the dash</property>
-                            </object>
-                        </child>
-                    </object>
-                </child>
-                <child>
-                    <object class="GtkSwitch" id="override-dash">
-                        <property name="name">override-dash</property>
-                        <property name="halign">GTK_ALIGN_START</property>
-                        <property name="valign">GTK_ALIGN_CENTER</property>
-                        <layout>
-                            <property name="column">1</property>
-                            <property name="row">1</property>
-                        </layout>
-                        <signal name="notify::active" handler="_onBoolValueChanged" />
                     </object>
                 </child>
                 <child>
@@ -517,6 +622,58 @@
         <child type="tab">
             <object class="GtkLabel" id="dash-tab">
                 <property name="label">Dash</property>
+            </object>
+        </child>
+        <child>
+            <object class="GtkGrid" id="misc-grid">
+                <property name="row-spacing">8</property>
+                <property name="column-spacing">24</property>
+                <property name="margin-top">10</property>
+                <property name="margin-bottom">10</property>
+                <property name="margin-start">10</property>
+                <property name="margin-end">10</property>
+                <property name="vexpand">true</property>
+                <child>
+                    <object class="GtkBox">
+                        <property name="hexpand">true</property>
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Dash to Panel left/right fix</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Fix Dash-to-Panel when it's positioned left or right (make sure dash override in the dash tab is disabled)</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="dash-to-panel-left-right-fix">
+                        <property name="name">dash-to-panel-left-right-fix</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">0</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child type="tab">
+            <object class="GtkLabel" id="misc-tab">
+                <property name="label">Misc</property>
             </object>
         </child>
     </object>

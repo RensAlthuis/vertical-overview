@@ -22,15 +22,17 @@ const animateAllocation = imports.ui.workspace.animateAllocation;
 var staticBackgroundEnabled = false;
 function staticBackgroundOverride() {
     if (!staticBackgroundEnabled) {
-        global.vertical_overview.bgManagers = []
+        global.vertical_overview.bgManagers = [];
         for (var monitor of Main.layoutManager.monitors) {
             let bgManager = new Background.BackgroundManager({
                 monitorIndex: monitor.index,
                 container: Main.layoutManager.overviewGroup,
-            })
+                vignette: true,
+            });
 
             bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-                bgManager.backgroundActor.opacity = Util.lerp(255, 100, Math.min(v.value, 1));
+                bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
+                bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
             });
 
             global.vertical_overview.bgManagers.push(bgManager);
@@ -62,6 +64,12 @@ function scalingWorkspaceBackgroundReset() {
     if (scalingWorkspaceBackgroundEnabled) {
         _Util.overrideProto(Workspace.Workspace.prototype, global.vertical_overview.GSFunctions['Workspace']);
         scalingWorkspaceBackgroundEnabled = false;
+
+        // Ensure that variables used by overview entry / exit animation have their proper values when the animation is disabled
+        let controlsManager = Main.overview._overview._controls;
+        controlsManager.dash.translation_x = 0;
+        controlsManager._searchEntry.opacity = 255;
+        controlsManager._thumbnailsBox.translation_x = 0;
     }
 }
 
@@ -102,15 +110,6 @@ WorkspaceOverride = {
             });
 
         this._overviewAdjustment = overviewAdjustment;
-        this._overviewStateId = overviewAdjustment.connect('notify::value', () => {
-            const overviewState = overviewAdjustment.value;
-
-            // We want windows not to spill out when the overview is in
-            // APP_GRID state, but HIDDEN and WINDOW_PICKER should allow
-            // them to eventually draw outside the workspace.
-            this._container.clip_to_allocation =
-                overviewState > OverviewControls.ControlsState.WINDOW_PICKER;
-        });
 
         this.monitorIndex = monitorIndex;
         this._monitor = Main.layoutManager.monitors[this.monitorIndex];
@@ -135,6 +134,8 @@ WorkspaceOverride = {
 
         this.connect('style-changed', this._onStyleChanged.bind(this));
         this.connect('destroy', this._onDestroy.bind(this));
+
+        this._skipTaskbarSignals = new Map();
 
         const windows = global.get_window_actors().map(a => a.meta_window)
             .filter(this._isMyWindow, this);

@@ -6,6 +6,11 @@ build: clean
 
 clean:
 	if test  -d _build; then rm -r _build; fi
+	-rm schemas/gschemas.compiled
 
 install:
 	gnome-extensions install -f ./_build/vertical-overview@RensAlthuis.github.com
+
+install-dev:
+	rm -rf ${HOME}/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com
+	ln -s $(shell pwd) ${HOME}/.local/share/gnome-shell/extensions/vertical-overview@RensAlthuis.github.com

@@ -48,7 +48,7 @@ function disable() {
     WorkspaceOverrides.reset();
     WorkspaceThumbnailOverrides.reset();
     Gestures.reset();
-    DashOverride.reset();
+    DashOverride.reset(true);
 
     rebind_keys(Main.overview._overview._controls);
 
@@ -74,6 +74,7 @@ function bindSettings() {
     });
 
     Util.bindSetting('scaling-workspace-background', (settings, label) => {
+        global.vertical_overview.scaling_workspaces_hidden = settings.get_boolean(label);
         if (settings.get_boolean(label)) {
             WorkspaceOverrides.scalingWorkspaceBackgroundOverride();
         } else {
@@ -91,6 +92,49 @@ function bindSettings() {
 
     Util.bindSetting('workspace-peek-distance', (settings, label) => {
         global.vertical_overview.workspacePeek = settings.get_int(label);
+    });
+
+    Util.bindSetting('dash-to-panel-left-right-fix', (settings, label) => {
+        global.vertical_overview.misc_dTPLeftRightFix = settings.get_boolean(label);
+    });
+
+    Util.bindSetting('default-old-style', (settings, label) => {
+        global.vertical_overview.default_old_style_enabled = settings.get_boolean(label);
+        DashOverride.dash_old_style();
+        WorkspaceThumbnailOverrides.thumbnails_old_style();
+    });
+
+    Util.bindSetting('old-style', (settings, label) => {
+        global.vertical_overview.old_style_enabled = settings.get_boolean(label);
+        DashOverride.dash_old_style();
+        WorkspaceThumbnailOverrides.thumbnails_old_style();
+    });
+
+    Util.bindSetting('panel-in-overview', (settings, label) => {
+        if (settings.get_boolean(label)) {
+            if (global.vertical_overview.panel_signal_found) {
+                global.vertical_overview.panel_signal.disconnected = true;
+            } else {
+                const callbackString = "()=>{this.add_style_pseudo_class('overview');}";
+                let i = 0;
+                while (i < Main.overview._signalConnections.length) {
+                    const signal = Main.overview._signalConnections[i];
+                    if (signal.name == 'showing') {
+                        if (signal.callback.toString().replace(/[\ \n]/g, "") == callbackString) {
+                            global.vertical_overview.panel_signal = signal;
+                            global.vertical_overview.panel_signal_found = true;
+                            signal.disconnected = true;
+                            break;
+                        }
+                    }
+                    i++;
+                }
+            }
+        } else {
+            if (global.vertical_overview.panel_signal_found) {
+                global.vertical_overview.panel_signal.disconnected = false;
+            }
+        }
     });
 }
 

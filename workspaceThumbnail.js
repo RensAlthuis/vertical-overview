@@ -7,7 +7,7 @@ const Workspace = imports.ui.workspace;
 const WorkspaceThumbnail = imports.ui.workspaceThumbnail;
 
 const Self = imports.misc.extensionUtils.getCurrentExtension();
-const Util = Self.imports.util
+const Util = Self.imports.util;
 
 const NUM_WORKSPACES_THRESHOLD = 2;
 
@@ -38,7 +38,23 @@ function reset() {
     Main.overview._overview._controls._thumbnailsBox.x_align = Clutter.ActorAlign.CENTER;
 }
 
+function thumbnails_old_style() {
+    let thumbnailsBox = Main.overview._overview._controls._thumbnailsBox;
+    if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
+        thumbnailsBox.add_style_class_name("vertical-overview");
+    } else {
+        thumbnailsBox.remove_style_class_name("vertical-overview");
+    }
+}
+
 var ThumbnailsBoxOverride = {
+    after__init: function () {
+        // A new ThumbnailsBox is created on secondary monitors every time overview is opened, so apply theme after a new one is created
+        if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
+            this.add_style_class_name("vertical-overview");
+        }
+    },
+    
     _updateShouldShow: function() {
         const shouldShow = true;
 
@@ -137,6 +153,9 @@ var ThumbnailsBoxOverride = {
     },
 
     vfunc_allocate: function(box) {
+        //set top and bottom margin
+        box.y1 += 16;
+        box.y2 -= 32;
         this.set_allocation(box);
 
         if (this._thumbnails.length == 0) // not visible
@@ -150,13 +169,13 @@ var ThumbnailsBoxOverride = {
         const portholeHeight = this._porthole.height;
         const ratio = portholeHeight / portholeWidth;
 
-        const width = box.get_width();
-        const height = Math.round(width * ratio);
+        var width = box.get_width();
+        var height = Math.round(width * ratio);
 
         let vScale = width / portholeWidth;
         let hScale = height / portholeHeight;
 
-        const spacing = themeNode.get_length('spacing');
+        var spacing = themeNode.get_length('spacing');
 
         let indicatorValue = this._scrollAdjustment.value;
         let indicatorUpperWs = Math.ceil(indicatorValue);
@@ -177,8 +196,13 @@ var ThumbnailsBoxOverride = {
         }
 
         let thumbnails_position = (global.vertical_overview.settings.object.get_int('thumbnails-position') || 1);
-        let totalHeight = (height * this._thumbnails.length) + spacing;
-        box.y1 = (box.get_height() - totalHeight) / (100 / thumbnails_position);
+        let totalHeight = (height + spacing) * this._thumbnails.length;
+        box.y1 = Math.max(0, (box.get_height() - totalHeight) / (100 / thumbnails_position));
+
+        let additionalScale = (box.get_height() < totalHeight) ?  box.get_height() / totalHeight : 1;
+        height *= additionalScale;
+        width *= additionalScale;
+        spacing *= additionalScale;
 
         let childBox = new Clutter.ActorBox();
         for (let i = 0; i < this._thumbnails.length; i++) {
@@ -197,11 +221,11 @@ var ThumbnailsBoxOverride = {
                 });
             }
 
-            if(this._dropPlaceholderPos !== -1 && this._dropPlaceholderPos <= i) {
+            if (this._dropPlaceholderPos !== -1 && this._dropPlaceholderPos <= i) {
                 y1 += placeholderHeight + spacing;
             }
 
-            childBox.set_origin(box.x1, y1);
+            childBox.set_origin(box.x1 + (box.get_width() - width), y1);
             childBox.set_size(width, height);
             thumbnail.setScale(vScale, hScale);
             thumbnail.allocate(childBox);
@@ -222,8 +246,8 @@ var ThumbnailsBoxOverride = {
         let indicatorLeftFullBorder = indicatorThemeNode.get_padding(St.Side.LEFT) + indicatorThemeNode.get_border_width(St.Side.LEFT);
         let indicatorRightFullBorder = indicatorThemeNode.get_padding(St.Side.RIGHT) + indicatorThemeNode.get_border_width(St.Side.RIGHT);
 
-        childBox.x1 = box.x1;
-        childBox.x2 = box.x1 + width;
+        childBox.x1 = box.x1 + (box.get_width() - width);
+        childBox.x2 = box.x1 + box.get_width();
 
         const indicatorY1 = indicatorLowerY1 +
             (indicatorUpperY1 - indicatorLowerY1) * (indicatorValue % 1);
@@ -241,10 +265,12 @@ var ThumbnailsBoxOverride = {
 var WorkspaceThumbnailOverride = {
     after__init: function () {
         this._bgManager = new Background.BackgroundManager({
-            monitorIndex: Main.layoutManager.primaryIndex,
-            container: this._contents,
-            vignette: false
+            monitorIndex: this.monitorIndex,
+            container: this._viewport,
+            vignette: false,
+            controlPosition: false,
         });
+        this._viewport.set_child_below_sibling(this._bgManager.backgroundActor, null);
 
         this.connect('destroy', (function () {
             this._bgManager.destroy();

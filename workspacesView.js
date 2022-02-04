@@ -18,11 +18,18 @@ function override() {
     log('You may see an error below,\nSecondaryMonitorDisplay is defined as const for some reason.\nSince I\'m overriding values in that const an error show might show up.\n Feel free to ignore it');
     global.vertical_overview.GSFunctions['SecondaryMonitorDisplay'] = Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, SecondaryMonitorDisplayOverride);
     log('Thank you, please carry on');
+
+    if (global.vertical_overview.default_old_style_enabled) {
+        Main.overview._overview._controls._workspacesDisplay.add_style_class_name("vertical-overview");
+    }
 }
 
 function reset() {
     Util.overrideProto(WorkspacesView.WorkspacesView.prototype, global.vertical_overview.GSFunctions['WorkspacesView']);
     Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, global.vertical_overview.GSFunctions['SecondaryMonitorDisplay']);
+    if (global.vertical_overview.default_old_style_enabled) {
+        Main.overview._overview._controls._workspacesDisplay.remove_style_class_name("vertical-overview");
+    }
 }
 
 var WorkspacesViewOverride = {
@@ -81,8 +88,6 @@ var WorkspacesViewOverride = {
 
         return fitSingleBox;
     }
-
-
 }
 
 var SecondaryMonitorDisplayOverride = {
@@ -117,9 +122,10 @@ var SecondaryMonitorDisplayOverride = {
         const padding =
             Math.round((1 - SECONDARY_WORKSPACE_SCALE) * height / 2);
 
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
         const scale = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
-        const leftOffset = Main.overview._overview._controls.layoutManager.leftOffset * scale;
-        const rightOffset = Main.overview._overview._controls.layoutManager.rightOffset * scale;
+        const leftOffset = Main.overview._overview._controls.layoutManager.leftOffset * scale * scaleFactor;
+        const rightOffset = Main.overview._overview._controls.layoutManager.rightOffset * scale * scaleFactor;
 
         // Workspace Thumbnails
         if (this._thumbnails.visible) {

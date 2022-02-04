@@ -37,6 +37,7 @@ function override() {
 
     let controlsManager = Main.overview._overview._controls;
     global.vertical_overview._updateID = controlsManager._stateAdjustment.connect("notify::value", _updateWorkspacesDisplay.bind(controlsManager));
+    global.vertical_overview._workspaceDisplayVisibleID = controlsManager._workspacesDisplay.connect("notify::visible", controlsManager._workspacesDisplay._updateWorkspacesViews.bind(controlsManager._workspacesDisplay));
 }
 
 function reset() {
@@ -45,9 +46,77 @@ function reset() {
 
     let controlsManager = Main.overview._overview._controls;
     controlsManager._stateAdjustment.disconnect(global.vertical_overview._updateID);
+    controlsManager._workspacesDisplay.disconnect(global.vertical_overview._workspaceDisplayVisibleID);
     controlsManager._workspacesDisplay.reactive = true;
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
+}
 
+function enterOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.translation_x = -controlsManager.dash.width;
+        controlsManager.dash.ease({
+            translation_x: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
+
+    controlsManager._searchEntry.opacity = 0;
+    controlsManager._searchEntry.ease({
+        opacity: 255,
+        duration: Overview.ANIMATION_TIME,
+    });
+
+    const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+    const rightOffset = controlsManager.layoutManager.rightOffset * scaleFactor;
+
+    controlsManager._thumbnailsBox.translation_x = rightOffset;
+    controlsManager._thumbnailsBox.ease({
+        translation_x: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+            workspace._thumbnails.translation_x = rightOffset * scale;
+            workspace._thumbnails.ease({
+                translation_x: 0,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
+}
+
+function exitOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.ease({
+            translation_x: -controlsManager.dash.width,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
+
+    controlsManager._searchEntry.ease({
+        opacity: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+
+    controlsManager._thumbnailsBox.ease({
+        translation_x: controlsManager._thumbnailsBox.width,
+        duration: Overview.ANIMATION_TIME,
+    });
+
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            workspace._thumbnails.ease({
+                translation_x: workspace._thumbnails.width,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
 }
 
 var ControlsManagerLayoutOverride = {
@@ -59,6 +128,15 @@ var ControlsManagerLayoutOverride = {
 
         switch (state) {
         case ControlsState.HIDDEN:
+                if (global.vertical_overview.misc_dTPLeftRightFix) {
+                    let [w, h] = Main.layoutManager.panelBox.get_size();
+                    let [x, y] = Main.layoutManager.panelBox.get_transformed_position();
+                    if (x > 0) { // if x > 0 assume panel is on the right side
+                        workspaceBox.set_size(width - w, box.y2);
+                    } else {
+                        workspaceBox.set_origin(w / 2, box.y1);
+                    }
+                }
             break;
         case ControlsState.WINDOW_PICKER:
         case ControlsState.APP_GRID:
@@ -100,16 +178,24 @@ var ControlsManagerLayoutOverride = {
     vfunc_allocate: function(container, box) {
         const childBox = new Clutter.ActorBox();
 
-        let leftOffset = this.leftOffset;
-        let rightOffset = this.rightOffset;
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        var leftOffset = this.leftOffset * scaleFactor;
+        let rightOffset = this.rightOffset * scaleFactor;
 
         const { spacing } = this;
 
         let startY = 0;
-        if (Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y) {
-            startY = Main.layoutManager.panelBox.height;
-            box.y1 += startY;
+
+        if (global.vertical_overview.misc_dTPLeftRightFix) {
+            let [w, h] = Main.layoutManager.panelBox.get_size();
+            leftOffset -= w;
+        } else {
+            if (Main.layoutManager.panelBox.y === Main.layoutManager.primaryMonitor.y) {
+                startY = Main.layoutManager.panelBox.height;
+                box.y1 += startY;
+            }
         }
+
         const [width, height] = box.get_size();
         let availableHeight = height;
 
@@ -195,8 +281,8 @@ var ControlsManagerLayoutOverride = {
         }
 
         // Search
-        childBox.set_origin(0, startY + searchHeight + spacing);
-        childBox.set_size(width, availableHeight);
+        childBox.set_origin(leftOffset, startY + searchHeight + spacing);
+        childBox.set_size(width - leftOffset - rightOffset, availableHeight);
         this._searchController.allocate(childBox);
         this._runPostAllocation();
     }
@@ -234,30 +320,14 @@ var ControlsManagerOverride = {
         ];
     },
 
-    _updateThumbnailsBox: function(animate = false) {
+    _updateThumbnailsBox: function() {
         const { shouldShow } = this._thumbnailsBox;
-        const { searchActive } = this._searchController;
-        const [opacity, scale] = this._getThumbnailsBoxParams();
 
-        const thumbnailsBoxVisible = shouldShow && !searchActive && opacity !== 0;
+        const thumbnailsBoxVisible = shouldShow;
         if (thumbnailsBoxVisible) {
-            this._thumbnailsBox.opacity = 0;
+            this._thumbnailsBox.opacity = 255;
             this._thumbnailsBox.visible = thumbnailsBoxVisible;
         }
-
-        const params = {
-            opacity: searchActive ? 0 : opacity,
-            duration: animate ? SIDE_CONTROLS_ANIMATION_TIME : 0,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => (this._thumbnailsBox.visible = thumbnailsBoxVisible)
-        };
-
-        if (!searchActive) {
-            params.scale_x = scale;
-            params.scale_y = scale;
-        }
-
-        this._thumbnailsBox.ease(params);
     },
 
     animateToOverview: function(state, callback) {
@@ -287,6 +357,34 @@ var ControlsManagerOverride = {
             state === ControlsState.APP_GRID;
 
         this._ignoreShowAppsButtonToggle = false;
+
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            enterOverviewAnimation();
+        }
+    },
+
+    animateFromOverview: function(callback) {
+        this._ignoreShowAppsButtonToggle = true;
+
+        this._workspacesDisplay.prepareToLeaveOverview();
+        if (!this._workspacesDisplay.activeWorkspaceHasMaximizedWindows())
+            Main.overview.fadeInDesktop();
+
+        this._stateAdjustment.ease(ControlsState.HIDDEN, {
+            duration: Overview.ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: () => {
+                this.dash.showAppsButton.checked = false;
+                this._ignoreShowAppsButtonToggle = false;
+
+                if (callback)
+                    callback();
+            },
+        });
+
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            exitOverviewAnimation();
+        }
     }
 }
 
@@ -318,21 +416,17 @@ function _updateWorkspacesDisplay() {
     let initialParams = paramsForState(initialState);
     let finalParams = paramsForState(finalState);
 
-    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
+    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress));
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
-    let workspacesDisplayVisible =
-        finalState == ControlsState.HIDDEN ||
-        (finalState == ControlsState.WINDOW_PICKER ||
-            (initialState == ControlsState.WINDOW_PICKER && progress != 1)) &&
-        !searchActive;
-
+    let workspacesDisplayVisible = (opacity != 0) && !(searchActive);
     let params = {
-        opacity: !searchActive? opacity : 0,
+        opacity: opacity,
         scale: scale,
         duration: 0,
         mode: Clutter.AnimationMode.EASE_OUT_QUAD,
         onComplete: () => {
+            this._workspacesDisplay.visible = !(progress == 1 && finalState == ControlsState.APP_GRID);
             this._workspacesDisplay.reactive = workspacesDisplayVisible;
             this._workspacesDisplay.setPrimaryWorkspaceVisible(workspacesDisplayVisible);
         }
