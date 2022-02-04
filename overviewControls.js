@@ -51,6 +51,74 @@ function reset() {
     controlsManager._workspacesDisplay.setPrimaryWorkspaceVisible(true);
 }
 
+function enterOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.translation_x = -controlsManager.dash.width;
+        controlsManager.dash.ease({
+            translation_x: 0,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
+            
+    controlsManager._searchEntry.opacity = 0;
+    controlsManager._searchEntry.ease({
+        opacity: 255,
+        duration: Overview.ANIMATION_TIME,
+    });
+            
+    const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+    const rightOffset = controlsManager.layoutManager.rightOffset * scaleFactor;
+
+    controlsManager._thumbnailsBox.translation_x = rightOffset;
+    controlsManager._thumbnailsBox.ease({
+        translation_x: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+            workspace._thumbnails.translation_x = rightOffset * scale;
+            workspace._thumbnails.ease({
+                translation_x: 0,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
+}
+
+function exitOverviewAnimation() {
+    let controlsManager = Main.overview._overview._controls;
+
+    if (global.vertical_overview.dash_override) {
+        controlsManager.dash.ease({
+            translation_x: -controlsManager.dash.width,
+            duration: Overview.ANIMATION_TIME,
+        });
+    }
+    
+    controlsManager._searchEntry.ease({
+        opacity: 0,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._thumbnailsBox.ease({
+        translation_x: controlsManager._thumbnailsBox.width,
+        duration: Overview.ANIMATION_TIME,
+    });
+    
+    controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
+        if (i != Main.layoutManager.primaryIndex) {
+            workspace._thumbnails.ease({
+                translation_x: workspace._thumbnails.width,
+                duration: Overview.ANIMATION_TIME,
+            });
+        }
+    });
+}
+
 var ControlsManagerLayoutOverride = {
     _computeWorkspacesBoxForState: function (state, box, startY, searchHeight, leftOffset, rightOffset) {
         const workspaceBox = box.copy();
@@ -301,8 +369,36 @@ var ControlsManagerOverride = {
 
         this.dash.showAppsButton.checked =
             state === ControlsState.APP_GRID;
-
+        
         this._ignoreShowAppsButtonToggle = false;
+        
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            enterOverviewAnimation();
+        }
+    },
+    
+    animateFromOverview: function(callback) {
+        this._ignoreShowAppsButtonToggle = true;
+
+        this._workspacesDisplay.prepareToLeaveOverview();
+        if (!this._workspacesDisplay.activeWorkspaceHasMaximizedWindows())
+            Main.overview.fadeInDesktop();
+
+        this._stateAdjustment.ease(ControlsState.HIDDEN, {
+            duration: Overview.ANIMATION_TIME,
+            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
+            onStopped: () => {
+                this.dash.showAppsButton.checked = false;
+                this._ignoreShowAppsButtonToggle = false;
+
+                if (callback)
+                    callback();
+            },
+        });
+        
+        if (global.vertical_overview.scaling_workspaces_hidden) {
+            exitOverviewAnimation();
+        }
     }
 }
 
@@ -334,7 +430,7 @@ function _updateWorkspacesDisplay() {
     let initialParams = paramsForState(initialState);
     let finalParams = paramsForState(finalState);
 
-    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress))
+    let opacity = Math.round(Util.lerp(initialParams.opacity, finalParams.opacity, progress));
     let scale = Util.lerp(initialParams.scale, finalParams.scale, progress);
 
     let workspacesDisplayVisible = (opacity != 0) && !(searchActive);

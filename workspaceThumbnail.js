@@ -48,6 +48,13 @@ function thumbnails_old_style() {
 }
 
 var ThumbnailsBoxOverride = {
+    after__init: function () {
+        // A new ThumbnailsBox is created on secondary monitors every time overview is opened, so apply theme after a new one is created
+        if (global.vertical_overview.old_style_enabled && global.vertical_overview.default_old_style_enabled) {
+            this.add_style_class_name("vertical-overview");
+        }
+    },
+    
     _updateShouldShow: function() {
         const shouldShow = true;
 
