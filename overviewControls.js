@@ -61,13 +61,13 @@ function enterOverviewAnimation() {
             duration: Overview.ANIMATION_TIME,
         });
     }
-            
+
     controlsManager._searchEntry.opacity = 0;
     controlsManager._searchEntry.ease({
         opacity: 255,
         duration: Overview.ANIMATION_TIME,
     });
-            
+
     const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
     const rightOffset = controlsManager.layoutManager.rightOffset * scaleFactor;
 
@@ -76,7 +76,7 @@ function enterOverviewAnimation() {
         translation_x: 0,
         duration: Overview.ANIMATION_TIME,
     });
-    
+
     controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
         if (i != Main.layoutManager.primaryIndex) {
             let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
@@ -98,17 +98,17 @@ function exitOverviewAnimation() {
             duration: Overview.ANIMATION_TIME,
         });
     }
-    
+
     controlsManager._searchEntry.ease({
         opacity: 0,
         duration: Overview.ANIMATION_TIME,
     });
-    
+
     controlsManager._thumbnailsBox.ease({
         translation_x: controlsManager._thumbnailsBox.width,
         duration: Overview.ANIMATION_TIME,
     });
-    
+
     controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
         if (i != Main.layoutManager.primaryIndex) {
             workspace._thumbnails.ease({
@@ -320,28 +320,14 @@ var ControlsManagerOverride = {
         ];
     },
 
-    _updateThumbnailsBox: function(animate = false) {
+    _updateThumbnailsBox: function() {
         const { shouldShow } = this._thumbnailsBox;
-        const [opacity, scale, translationY] = this._getThumbnailsBoxParams();
 
-        const thumbnailsBoxVisible = shouldShow && opacity !== 0;
+        const thumbnailsBoxVisible = shouldShow;
         if (thumbnailsBoxVisible) {
             this._thumbnailsBox.opacity = 255;
             this._thumbnailsBox.visible = thumbnailsBoxVisible;
         }
-
-        const params = {
-            opacity: opacity,
-            duration: animate ? SIDE_CONTROLS_ANIMATION_TIME : 0,
-            mode: Clutter.AnimationMode.EASE_OUT_QUAD,
-            onComplete: () => (this._thumbnailsBox.visible = thumbnailsBoxVisible)
-        };
-
-        params.scale_x = scale;
-        params.scale_y = scale;
-        params.translation_y = translationY;
-
-        this._thumbnailsBox.ease(params);
     },
 
     animateToOverview: function(state, callback) {
@@ -369,14 +355,14 @@ var ControlsManagerOverride = {
 
         this.dash.showAppsButton.checked =
             state === ControlsState.APP_GRID;
-        
+
         this._ignoreShowAppsButtonToggle = false;
-        
+
         if (global.vertical_overview.scaling_workspaces_hidden) {
             enterOverviewAnimation();
         }
     },
-    
+
     animateFromOverview: function(callback) {
         this._ignoreShowAppsButtonToggle = true;
 
@@ -395,7 +381,7 @@ var ControlsManagerOverride = {
                     callback();
             },
         });
-        
+
         if (global.vertical_overview.scaling_workspaces_hidden) {
             exitOverviewAnimation();
         }
