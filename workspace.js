@@ -20,40 +20,24 @@ const _Util = Self.imports.util;
 const animateAllocation = imports.ui.workspace.animateAllocation;
 
 var staticBackgroundEnabled = false;
-
-function updateStaticBackgrounds() {
-    for (var bg of global.vertical_overview.bgManagers) {
-        bg.destroy();
-    }
-
-    global.vertical_overview.bgManagers = [];
-
-    for (var monitor of Main.layoutManager.monitors) {
-        let bgManager = new Background.BackgroundManager({
-            monitorIndex: monitor.index,
-            container: Main.layoutManager.overviewGroup,
-            vignette: true,
-        });
-
-        bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-            bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
-            bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
-        });
-
-        global.vertical_overview.bgManagers.push(bgManager);
-    }
-
-    staticBackgroundEnabled = true;
-    scalingWorkspaceBackgroundEnabled = true;
-}
-
 function staticBackgroundOverride() {
     if (!staticBackgroundEnabled) {
         global.vertical_overview.bgManagers = [];
-        monitorsChangedId = Main.layoutManager.connect('monitors-changed', () => {
-            updateStaticBackgrounds();
-        });
-        updateStaticBackgrounds();
+        for (var monitor of Main.layoutManager.monitors) {
+            let bgManager = new Background.BackgroundManager({
+                monitorIndex: monitor.index,
+                container: Main.layoutManager.overviewGroup,
+                vignette: true,
+            });
+
+            bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
+                bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
+                bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
+            });
+
+            global.vertical_overview.bgManagers.push(bgManager);
+        }
+        staticBackgroundEnabled = true;
     }
 }
 
