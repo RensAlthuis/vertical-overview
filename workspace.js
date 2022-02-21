@@ -38,8 +38,6 @@ function updateStaticBackgrounds() {
         });
         global.vertical_overview.bgManagers.push(bgManager);
     }
-    staticBackgroundEnabled = true;
-    scalingWorkspaceBackgroundEnabled = true;
 }
 
 function staticBackgroundOverride() {
