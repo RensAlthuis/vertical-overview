@@ -15,7 +15,7 @@ const Util = Self.imports.util;
 
 function override() {
     global.vertical_overview.GSFunctions['WorkspacesView'] = Util.overrideProto(WorkspacesView.WorkspacesView.prototype, WorkspacesViewOverride);
-    log('You may see an error below,\nSecondaryMonitorDisplay is defined as const for some reason.\nSince I\'m overriding values in that const an error show might show up.\n Feel free to ignore it');
+    log('You may see an error below,\nSecondaryMonitorDisplay is defined as const for some reason.\nSecondaryMonitorDisplay = ' + WorkspacesView.SecondaryMonitorDisplay + '\nSince I\'m overriding values in that const an error show might show up.\n Feel free to ignore it');
     global.vertical_overview.GSFunctions['SecondaryMonitorDisplay'] = Util.overrideProto(WorkspacesView.SecondaryMonitorDisplay.prototype, SecondaryMonitorDisplayOverride);
     log('Thank you, please carry on');
 

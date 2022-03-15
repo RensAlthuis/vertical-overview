@@ -120,8 +120,9 @@ function exitOverviewAnimation() {
 }
 
 var ControlsManagerLayoutOverride = {
-    _computeWorkspacesBoxForState: function (state, box, startY, searchHeight, leftOffset, rightOffset) {
-        const workspaceBox = box.copy();
+    _computeWorkspacesBoxForState(state, workAreaBox, searchHeight, dashHeight, thumbnailsHeight) {
+        const workspaceBox = workAreaBox.copy();
+        const [startX, startY] = workAreaBox.get_origin();
         const [width, height] = workspaceBox.get_size();
         const { spacing } = this;
         const { expandFraction } = this._workspacesThumbnails;
@@ -141,10 +142,10 @@ var ControlsManagerLayoutOverride = {
         case ControlsState.WINDOW_PICKER:
         case ControlsState.APP_GRID:
             workspaceBox.set_origin(
-                leftOffset + spacing,
+                this.leftOffset + spacing,
                 startY + searchHeight + spacing * expandFraction);
             workspaceBox.set_size(
-                width - leftOffset - rightOffset - (spacing * 2),
+                width - this.leftOffset - this.rightOffset - (spacing * 2),
                 height - startY - (searchHeight + spacing * expandFraction) * 2);
             break;
         }
@@ -152,18 +153,19 @@ var ControlsManagerLayoutOverride = {
         return workspaceBox;
     },
 
-    _getAppDisplayBoxForState: function(state, box, startY, searchHeight) {
-        const [width, height] = box.get_size();
+    _getAppDisplayBoxForState(state, workAreaBox, searchHeight, dashHeight, appGridBox) {
+        const [startX, startY] = workAreaBox.get_origin();
+        const [width, height] = workAreaBox.get_size();
         const appDisplayBox = new Clutter.ActorBox();
         const { spacing } = this;
 
         switch (state) {
         case ControlsState.HIDDEN:
         case ControlsState.WINDOW_PICKER:
-            appDisplayBox.set_origin(0, box.y2);
+            appDisplayBox.set_origin(startX, workAreaBox.y2);
             break;
         case ControlsState.APP_GRID:
-            appDisplayBox.set_origin(0,
+            appDisplayBox.set_origin(startX,
                 startY + searchHeight + spacing);
             break;
         }
