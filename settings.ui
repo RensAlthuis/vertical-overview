@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
     <object class="GtkAdjustment" id="left-offset-adjustment">
         <property name="lower">50</property>
@@ -674,6 +675,55 @@
         <child type="tab">
             <object class="GtkLabel" id="misc-tab">
                 <property name="label">Misc</property>
+            </object>
+        </child>
+        <child>
+            <object class="GtkScrolledWindow" id="gestures">
+                <property name="hscrollbar-policy">GTK_POLICY_NEVER</property>
+                <child>
+                    <object class="GtkBox" id="gesture-page">
+                        <property name="hexpand">true</property>
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <property name="margin-start">32</property>
+                        <property name="margin-end">32</property>
+                        <property name="margin-top">32</property>
+                        <property name="margin-bottom">32</property>
+                        <child>
+                            <object class="GtkBox" id="gesture-list">
+                                <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                <property name="spacing">16</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkBox">
+                                <property name="margin-top">8</property>
+                                <property name="halign">GTK_ALIGN_END</property>
+                                <property name="spacing">8</property>
+                                <child>
+                                    <object class="GtkSeparator">
+                                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkButton" id="new-gesture">
+                                        <property name="label">+</property>
+                                        <signal name="clicked" handler="_onNewGesture"/>>
+                                    </object>
+                                </child>
+                                <child>
+                                    <object class="GtkSeparator">
+                                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+        <child type="tab">
+            <object class="GtkLabel" id="gesture-tab">
+                <property name="label">Gestures</property>
             </object>
         </child>
     </object>
