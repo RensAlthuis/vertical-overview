@@ -14,7 +14,7 @@ function overrideProto(proto, overrides) {
 
     for (var symbol in overrides) {
         if (symbol.startsWith('after_')) {
-            const actualSymbol = symbol.substr('after_'.length);
+            const actualSymbol = symbol.slice('after_'.length);
             const fn = proto[actualSymbol];
             const afterFn = overrides[symbol]
             proto[actualSymbol] = function() {
@@ -28,7 +28,7 @@ function overrideProto(proto, overrides) {
         else {
             backup[symbol] = proto[symbol];
             if (symbol.startsWith('vfunc')) {
-                hookVfunc(proto, symbol.substr(6), overrides[symbol]);
+                hookVfunc(proto[Gi.gobject_prototype_symbol], symbol.slice(6), overrides[symbol]);
             }
             else {
                 proto[symbol] = overrides[symbol];
