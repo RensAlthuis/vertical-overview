@@ -669,6 +669,41 @@
                         <signal name="notify::active" handler="_onBoolValueChanged" />
                     </object>
                 </child>
+                <child>
+                    <object class="GtkBox" id="disable-swipe-gestures-box">
+                        <property name="orientation">GTK_ORIENTATION_VERTICAL</property>
+                        <layout>
+                            <property name="column">0</property>
+                            <property name="row">1</property>
+                        </layout>
+                        <child>
+                            <object class="GtkLabel" id="disable-swipe-gestures-label">
+                                <property name="css-classes">body</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable swipe gestures</property>
+                            </object>
+                        </child>
+                        <child>
+                            <object class="GtkLabel" id="disable-swipe-gestures-description">
+                                <property name="css-classes">caption</property>
+                                <property name="halign">GTK_ALIGN_START</property>
+                                <property name="label">Disable swipe gesture overrides to use your own.</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+                <child>
+                    <object class="GtkSwitch" id="disable-swipe-gestures">
+                        <property name="name">disable-swipe-gestures</property>
+                        <property name="halign">GTK_ALIGN_START</property>
+                        <property name="valign">GTK_ALIGN_CENTER</property>
+                        <layout>
+                            <property name="column">1</property>
+                            <property name="row">1</property>
+                        </layout>
+                        <signal name="notify::active" handler="_onBoolValueChanged" />
+                    </object>
+                </child>
             </object>
         </child>
         <child type="tab">

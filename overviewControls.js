@@ -318,6 +318,7 @@ var ControlsManagerOverride = {
         return [
             Util.lerp(initialParams.opacity, finalParams.opacity, progress),
             Util.lerp(initialParams.scale, finalParams.scale, progress),
+            0.0,
         ];
     },
 
