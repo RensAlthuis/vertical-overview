@@ -66,11 +66,13 @@ function bindSettings() {
     let controlsManager = Main.overview._overview._controls;
 
     Util.bindSetting('left-offset', (settings, label) => {
-        controlsManager.layoutManager.leftOffset = settings.get_int(label);
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        controlsManager.layoutManager.leftOffset = settings.get_int(label) * scaleFactor;
     });
 
     Util.bindSetting('right-offset', (settings, label) => {
-        controlsManager.layoutManager.rightOffset = settings.get_int(label);
+        const { scaleFactor } = St.ThemeContext.get_for_stage(global.stage);
+        controlsManager.layoutManager.rightOffset = settings.get_int(label) * scaleFactor;
     });
 
     Util.bindSetting('scaling-workspace-background', (settings, label) => {
