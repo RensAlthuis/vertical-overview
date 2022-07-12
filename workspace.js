@@ -22,27 +22,40 @@ const animateAllocation = imports.ui.workspace.animateAllocation;
 var staticBackgroundEnabled = false;
 function staticBackgroundOverride() {
     if (!staticBackgroundEnabled) {
-        global.vertical_overview.bgManagers = [];
-        for (var monitor of Main.layoutManager.monitors) {
-            let bgManager = new Background.BackgroundManager({
-                monitorIndex: monitor.index,
-                container: Main.layoutManager.overviewGroup,
-                vignette: true,
-            });
+        let set_backgrounds = function() {
+            if (global.vertical_overview.bgManagers) {
+                for (var bg of global.vertical_overview.bgManagers) {
+                    Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
+                    bg.destroy();
+                }
+            }
 
-            bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
-                bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
-                bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
-            });
+            global.vertical_overview.bgManagers = [];
+            for (var monitor of Main.layoutManager.monitors) {
+                let bgManager = new Background.BackgroundManager({
+                    monitorIndex: monitor.index,
+                    container: Main.layoutManager.overviewGroup,
+                    vignette: true,
+                });
 
-            global.vertical_overview.bgManagers.push(bgManager);
+                bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
+                    bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
+                    bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
+                });
+
+                global.vertical_overview.bgManagers.push(bgManager);
+            }
         }
+        set_backgrounds();
+        global.vertical_overview.bgMonitorsChangedID = Main.layoutManager.connect('monitors-changed', set_backgrounds)
         staticBackgroundEnabled = true;
     }
 }
 
 function staticBackgroundReset() {
     if (staticBackgroundEnabled) {
+        Main.layoutManager.disconnect(global.vertical_overview.bgMonitorChangedID);
+        global.vertical_overview.bgMonitorChangedID = null;
         for (var bg of global.vertical_overview.bgManagers) {
             Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
             bg.destroy();
@@ -104,10 +117,6 @@ WorkspaceOverride = {
         this.add_child(this._container);
 
         this.metaWorkspace = metaWorkspace;
-        this._activeWorkspaceChangedId =
-            this.metaWorkspace?.connect('notify::active', () => {
-                layoutManager.syncOverlays();
-            });
 
         this._overviewAdjustment = overviewAdjustment;
 
@@ -149,17 +158,16 @@ WorkspaceOverride = {
         }
 
         // Track window changes, but let the window tracker process them first
-        if (this.metaWorkspace) {
-            this._windowAddedId = this.metaWorkspace.connect_after(
-                'window-added', this._windowAdded.bind(this));
-            this._windowRemovedId = this.metaWorkspace.connect_after(
-                'window-removed', this._windowRemoved.bind(this));
-        }
-        this._windowEnteredMonitorId = global.display.connect_after(
-            'window-entered-monitor', this._windowEnteredMonitor.bind(this));
-        this._windowLeftMonitorId = global.display.connect_after(
-            'window-left-monitor', this._windowLeftMonitor.bind(this));
+        this.metaWorkspace?.connectObject(
+            'window-added', this._windowAdded.bind(this), GObject.ConnectFlags.AFTER,
+            'window-removed', this._windowRemoved.bind(this), GObject.ConnectFlags.AFTER,
+            'notify::active', () => layoutManager.syncOverlays(), this);
+        global.display.connectObject(
+            'window-entered-monitor', this._windowEnteredMonitor.bind(this), GObject.ConnectFlags.AFTER,
+            'window-left-monitor', this._windowLeftMonitor.bind(this), GObject.ConnectFlags.AFTER,
+            this);
         this._layoutFrozenId = 0;
+
 
         // DND requires this to be set
         this._delegate = this;

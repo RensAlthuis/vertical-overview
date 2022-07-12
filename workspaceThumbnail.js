@@ -54,7 +54,7 @@ var ThumbnailsBoxOverride = {
             this.add_style_class_name("vertical-overview");
         }
     },
-    
+
     _updateShouldShow: function() {
         const shouldShow = true;
 
