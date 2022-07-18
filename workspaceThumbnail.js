@@ -272,7 +272,7 @@ var WorkspaceThumbnailOverride = {
         });
         this._viewport.set_child_below_sibling(this._bgManager.backgroundActor, null);
 
-        this.connect('destroy', (function () {
+        this.connectObject('destroy', (function () {
             this._bgManager.destroy();
             this._bgManager = null;
         }).bind(this));

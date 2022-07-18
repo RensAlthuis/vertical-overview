@@ -114,7 +114,7 @@ const TouchpadSwipeGesture = GObject.registerClass({
         });
 
         this._stageCaptureEvent =
-            global.stage.connect('captured-event::touchpad', this._handleEvent.bind(this));
+            global.stage.connectObject('captured-event::touchpad', this._handleEvent.bind(this));
     }
 
     _handleEvent(actor, event) {
@@ -205,7 +205,7 @@ const TouchpadSwipeGesture = GObject.registerClass({
 
     destroy() {
         if (this._stageCaptureEvent) {
-            global.stage.disconnect(this._stageCaptureEvent);
+            global.stage.disconnectObject(this._stageCaptureEvent);
             delete this._stageCaptureEvent;
         }
     }
@@ -237,7 +237,7 @@ const TouchSwipeGesture = GObject.registerClass({
         this._allowedModes = allowedModes;
         this._distance = global.screen_height;
 
-        global.display.connect('grab-op-begin', () => {
+        global.display.connectObject('grab-op-begin', () => {
             this.cancel();
         });
 
@@ -334,7 +334,7 @@ const ScrollGesture = GObject.registerClass({
         this._began = false;
         this._enabled = true;
 
-        actor.connect('scroll-event', this._handleEvent.bind(this));
+        actor.connectObject('scroll-event', this._handleEvent.bind(this));
     }
 
     get enabled() {
@@ -476,9 +476,9 @@ var SwipeTracker = GObject.registerClass({
         this._reset();
 
         this._touchpadGesture = new TouchpadSwipeGesture(allowedModes);
-        this._touchpadGesture.connect('begin', this._beginGesture.bind(this));
-        this._touchpadGesture.connect('update', this._updateGesture.bind(this));
-        this._touchpadGesture.connect('end', this._endTouchpadGesture.bind(this));
+        this._touchpadGesture.connectObject('begin', this._beginGesture.bind(this));
+        this._touchpadGesture.connectObject('update', this._updateGesture.bind(this));
+        this._touchpadGesture.connectObject('end', this._endTouchpadGesture.bind(this));
         this.bind_property('enabled', this._touchpadGesture, 'enabled', 0);
         this.bind_property('orientation', this._touchpadGesture, 'orientation',
             GObject.BindingFlags.SYNC_CREATE);
@@ -486,10 +486,10 @@ var SwipeTracker = GObject.registerClass({
         this._touchGesture = new TouchSwipeGesture(allowedModes,
             GESTURE_FINGER_COUNT,
             Clutter.GestureTriggerEdge.AFTER);
-        this._touchGesture.connect('begin', this._beginTouchSwipe.bind(this));
-        this._touchGesture.connect('update', this._updateGesture.bind(this));
-        this._touchGesture.connect('end', this._endTouchGesture.bind(this));
-        this._touchGesture.connect('cancel', this._cancelTouchGesture.bind(this));
+        this._touchGesture.connectObject('begin', this._beginTouchSwipe.bind(this));
+        this._touchGesture.connectObject('update', this._updateGesture.bind(this));
+        this._touchGesture.connectObject('end', this._endTouchGesture.bind(this));
+        this._touchGesture.connectObject('cancel', this._cancelTouchGesture.bind(this));
         this.bind_property('enabled', this._touchGesture, 'enabled', 0);
         this.bind_property('orientation', this._touchGesture, 'orientation',
             GObject.BindingFlags.SYNC_CREATE);
@@ -499,10 +499,10 @@ var SwipeTracker = GObject.registerClass({
         if (params.allowDrag) {
             this._dragGesture = new TouchSwipeGesture(allowedModes, 1,
                 Clutter.GestureTriggerEdge.AFTER);
-            this._dragGesture.connect('begin', this._beginGesture.bind(this));
-            this._dragGesture.connect('update', this._updateGesture.bind(this));
-            this._dragGesture.connect('end', this._endTouchGesture.bind(this));
-            this._dragGesture.connect('cancel', this._cancelTouchGesture.bind(this));
+            this._dragGesture.connectObject('begin', this._beginGesture.bind(this));
+            this._dragGesture.connectObject('update', this._updateGesture.bind(this));
+            this._dragGesture.connectObject('end', this._endTouchGesture.bind(this));
+            this._dragGesture.connectObject('cancel', this._cancelTouchGesture.bind(this));
             this.bind_property('enabled', this._dragGesture, 'enabled', 0);
             this.bind_property('orientation', this._dragGesture, 'orientation',
                 GObject.BindingFlags.SYNC_CREATE);
@@ -514,9 +514,9 @@ var SwipeTracker = GObject.registerClass({
 
         if (params.allowScroll) {
             this._scrollGesture = new ScrollGesture(actor, allowedModes);
-            this._scrollGesture.connect('begin', this._beginGesture.bind(this));
-            this._scrollGesture.connect('update', this._updateGesture.bind(this));
-            this._scrollGesture.connect('end', this._endTouchpadGesture.bind(this));
+            this._scrollGesture.connectObject('begin', this._beginGesture.bind(this));
+            this._scrollGesture.connectObject('update', this._updateGesture.bind(this));
+            this._scrollGesture.connectObject('end', this._endTouchpadGesture.bind(this));
             this.bind_property('enabled', this._scrollGesture, 'enabled', 0);
             this.bind_property('orientation', this._scrollGesture, 'orientation',
                 GObject.BindingFlags.SYNC_CREATE);

@@ -15,9 +15,9 @@ function override() {
             Clutter.Orientation.VERTICAL,
             Shell.ActionMode.NORMAL | Shell.ActionMode.OVERVIEW,
             { allowDrag: false, allowScroll: false });
-        swipeTracker.connect('begin', Main.overview._gestureBegin.bind(Main.overview));
-        swipeTracker.connect('update', Main.overview._gestureUpdate.bind(Main.overview));
-        swipeTracker.connect('end', Main.overview._gestureEnd.bind(Main.overview));
+        swipeTracker.connectObject('begin', Main.overview._gestureBegin.bind(Main.overview));
+        swipeTracker.connectObject('update', Main.overview._gestureUpdate.bind(Main.overview));
+        swipeTracker.connectObject('end', Main.overview._gestureEnd.bind(Main.overview));
         Main.overview._swipeTracker = swipeTracker;
     } else {
         let workspacesDisplay = Main.overview._overview._controls._workspacesDisplay;
@@ -30,9 +30,9 @@ function override() {
             Shell.ActionMode.OVERVIEW,
             { allowDrag: false });
         swipeTracker.allowLongSwipes = true;
-        swipeTracker.connect('begin', workspacesDisplay._switchWorkspaceBegin.bind(workspacesDisplay));
-        swipeTracker.connect('update', workspacesDisplay._switchWorkspaceUpdate.bind(workspacesDisplay));
-        swipeTracker.connect('end', workspacesDisplay._switchWorkspaceEnd.bind(workspacesDisplay));
+        swipeTracker.connectObject('begin', workspacesDisplay._switchWorkspaceBegin.bind(workspacesDisplay));
+        swipeTracker.connectObject('update', workspacesDisplay._switchWorkspaceUpdate.bind(workspacesDisplay));
+        swipeTracker.connectObject('end', workspacesDisplay._switchWorkspaceEnd.bind(workspacesDisplay));
         workspacesDisplay._swipeTracker = swipeTracker;
 
 
@@ -44,9 +44,9 @@ function override() {
             Clutter.Orientation.VERTICAL,
             Shell.ActionMode.NORMAL,
             { allowDrag: false });
-        swipeTrackerAnimation.connect('begin', workspaceAnimation._switchWorkspaceBegin.bind(workspaceAnimation));
-        swipeTrackerAnimation.connect('update', workspaceAnimation._switchWorkspaceUpdate.bind(workspaceAnimation));
-        swipeTrackerAnimation.connect('end', workspaceAnimation._switchWorkspaceEnd.bind(workspaceAnimation));
+        swipeTrackerAnimation.connectObject('begin', workspaceAnimation._switchWorkspaceBegin.bind(workspaceAnimation));
+        swipeTrackerAnimation.connectObject('update', workspaceAnimation._switchWorkspaceUpdate.bind(workspaceAnimation));
+        swipeTrackerAnimation.connectObject('end', workspaceAnimation._switchWorkspaceEnd.bind(workspaceAnimation));
         workspaceAnimation._swipeTracker = swipeTrackerAnimation;
 
         global.display.bind_property('compositor-modifiers',

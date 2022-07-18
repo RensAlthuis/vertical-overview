@@ -50,9 +50,9 @@ function bindSetting(label, callback, executeOnBind = true) {
 
 
     if (settings.signals[label])
-        settings.object.disconnect(settings.signals[label]);
+        settings.object.disconnectObject(settings.signals[label]);
 
-    const signal = global.vertical_overview.settings.object.connect('changed::' + label, callback);
+    const signal = global.vertical_overview.settings.object.connectObject('changed::' + label, callback);
     global.vertical_overview.settings.signals[label] = signal;
     settings.callbacks[label] = callback;
 
@@ -68,7 +68,7 @@ function unbindSetting(label, callback) {
     if (callback)
         callback(settings.object, label);
 
-    settings.object.disconnect(settings.signals[label]);
+    settings.object.disconnectObject(settings.signals[label]);
     delete settings.signals[label];
 
     if (settings.callbacks[label]) {

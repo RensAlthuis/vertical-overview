@@ -45,7 +45,7 @@ function reset(isDisable) {
         Util.overrideProto(Dash.DashItemContainer.prototype, global.vertical_overview.GSFunctions['DashItemContainer']);
         global.vertical_overview.dash_override = false;
         this.translation_x = 0;
-        
+
         Util.unbindSetting('dash-max-height', () => {
             delete Main.overview._overview._controls.dashMaxHeightScale;
         });
@@ -614,7 +614,7 @@ var DashOverride = {
             indicator.y_align = null;
         }
 
-        appIcon.connect('menu-state-changed',
+        appIcon.connectObject('menu-state-changed',
             (o, opened) => {
                 this._itemMenuStateChanged(item, opened);
             });

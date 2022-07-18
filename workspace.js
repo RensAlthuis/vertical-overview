@@ -25,7 +25,7 @@ function staticBackgroundOverride() {
         let set_backgrounds = function() {
             if (global.vertical_overview.bgManagers) {
                 for (var bg of global.vertical_overview.bgManagers) {
-                    Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
+                    Main.overview._overview._controls._stateAdjustment.disconnectObject(bg._fadeSignal);
                     bg.destroy();
                 }
             }
@@ -38,7 +38,7 @@ function staticBackgroundOverride() {
                     vignette: true,
                 });
 
-                bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connect('notify::value', (v) => {
+                bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connectObject('notify::value', (v) => {
                     bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
                     bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
                 });
@@ -47,17 +47,17 @@ function staticBackgroundOverride() {
             }
         }
         set_backgrounds();
-        global.vertical_overview.bgMonitorsChangedID = Main.layoutManager.connect('monitors-changed', set_backgrounds)
+        global.vertical_overview.bgMonitorsChangedID = Main.layoutManager.connectObject('monitors-changed', set_backgrounds)
         staticBackgroundEnabled = true;
     }
 }
 
 function staticBackgroundReset() {
     if (staticBackgroundEnabled) {
-        Main.layoutManager.disconnect(global.vertical_overview.bgMonitorChangedID);
+        Main.layoutManager.disconnectObject(global.vertical_overview.bgMonitorChangedID);
         global.vertical_overview.bgMonitorChangedID = null;
         for (var bg of global.vertical_overview.bgManagers) {
-            Main.overview._overview._controls._stateAdjustment.disconnect(bg._fadeSignal);
+            Main.overview._overview._controls._stateAdjustment.disconnectObject(bg._fadeSignal);
             bg.destroy();
         }
         delete global.vertical_overview.bgManagers;
@@ -127,7 +127,7 @@ WorkspaceOverride = {
             this.add_style_class_name('external-monitor');
 
         const clickAction = new Clutter.ClickAction();
-        clickAction.connect('clicked', action => {
+        clickAction.connectObject('clicked', action => {
             // Switch to the workspace when not the active one, leave the
             // overview otherwise.
             if (action.get_button() === 1 || action.get_button() === 0) {
@@ -141,8 +141,8 @@ WorkspaceOverride = {
         this.bind_property('mapped', clickAction, 'enabled', GObject.BindingFlags.SYNC_CREATE);
         this._container.add_action(clickAction);
 
-        this.connect('style-changed', this._onStyleChanged.bind(this));
-        this.connect('destroy', this._onDestroy.bind(this));
+        this.connectObject('style-changed', this._onStyleChanged.bind(this));
+        this.connectObject('destroy', this._onDestroy.bind(this));
 
         this._skipTaskbarSignals = new Map();
 
