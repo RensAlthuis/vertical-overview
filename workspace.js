@@ -25,9 +25,10 @@ function staticBackgroundOverride() {
         let set_backgrounds = function() {
             if (global.vertical_overview.bgManagers) {
                 for (var bg of global.vertical_overview.bgManagers) {
-                    Main.overview._overview._controls._stateAdjustment.disconnectObject(bg._fadeSignal);
+                    Main.overview._overview._controls._stateAdjustment.disconnectObject(bg);
                     bg.destroy();
                 }
+                delete global.vertical_overview.bgManagers;
             }
 
             global.vertical_overview.bgManagers = [];
@@ -38,10 +39,10 @@ function staticBackgroundOverride() {
                     vignette: true,
                 });
 
-                bgManager._fadeSignal = Main.overview._overview._controls._stateAdjustment.connectObject('notify::value', (v) => {
+                Main.overview._overview._controls._stateAdjustment.connectObject('notify::value', (v) => {
                     bgManager.backgroundActor.content.vignette_sharpness = Util.lerp(0, 0.6, Math.min(v.value, 1));
                     bgManager.backgroundActor.content.brightness = Util.lerp(1, 0.75, Math.min(v.value, 1));
-                });
+                }, bgManager);
 
                 global.vertical_overview.bgManagers.push(bgManager);
             }
@@ -57,7 +58,7 @@ function staticBackgroundReset() {
         Main.layoutManager.disconnectObject(global.vertical_overview.bgMonitorChangedID);
         global.vertical_overview.bgMonitorChangedID = null;
         for (var bg of global.vertical_overview.bgManagers) {
-            Main.overview._overview._controls._stateAdjustment.disconnectObject(bg._fadeSignal);
+            Main.overview._overview._controls._stateAdjustment.disconnectObject(bg);
             bg.destroy();
         }
         delete global.vertical_overview.bgManagers;
