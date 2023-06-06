@@ -4,9 +4,10 @@
     "original-author": "rens.althuis@gmail.com",
     "shell-version" : [
         "42",
-        "43"
+        "43",
+	"44"
     ],
     "url" : "https://github.com/RensAlthuis/vertical-overview",
     "uuid" : "vertical-overview@RensAlthuis.github.com",
-    "version" : "9"
+    "version" : "10"
 }
