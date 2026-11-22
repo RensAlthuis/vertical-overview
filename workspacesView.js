@@ -53,6 +53,9 @@ var WorkspacesViewOverride = {
     _getSpacing(box, fitMode, vertical) {
         const [width, height] = box.get_size();
         const [workspace] = this._workspaces;
+        if (!workspace) {
+            return 0;
+        }
         var [, workspaceHeight] = workspace.get_preferred_height(width);
         if (workspaceHeight > height) {
             workspaceHeight = height;
@@ -68,6 +71,9 @@ var WorkspacesViewOverride = {
     _getFirstFitSingleWorkspaceBox(box, spacing, vertical) {
         const [width, height] = box.get_size();
         const [workspace] = this._workspaces;
+        if (!workspace) {
+            return box.copy();
+        }
 
         const rtl = this.text_direction === Clutter.TextDirection.RTL;
         const adj = this._scrollAdjustment;
