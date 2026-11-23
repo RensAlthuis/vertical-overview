@@ -13,11 +13,76 @@ const DashOverride = Self.imports.dash;
 const Gestures = Self.imports.gestures;
 const Background = imports.ui.background;
 const WorkspaceOverrides = Self.imports.workspace;
+const GLib = imports.gi.GLib;
+
+// When monitors are plugged/unplugged (e.g. docking a laptop) GNOME Shell
+// rebuilds the overview's per-monitor views, but our overrides keep
+// references to the old ThumbnailsBox, which gets disposed. The workspace
+// thumbnails then stop showing up until the extension is reloaded.
+// We reload the overrides ourselves after every monitor change.
+let _monitorsChangedId = 0;
+let _reloadTimeoutId = 0;
+let _overviewHiddenId = 0;
 
 function init() {
 }
 
 function enable() {
+    _enable();
+    _monitorsChangedId = Main.layoutManager.connect('monitors-changed', _scheduleReload);
+}
+
+function disable() {
+    if (_monitorsChangedId) {
+        Main.layoutManager.disconnect(_monitorsChangedId);
+        _monitorsChangedId = 0;
+    }
+    _cancelReload();
+    _disable();
+}
+
+function _cancelReload() {
+    if (_reloadTimeoutId) {
+        GLib.source_remove(_reloadTimeoutId);
+        _reloadTimeoutId = 0;
+    }
+    if (_overviewHiddenId) {
+        Main.overview.disconnect(_overviewHiddenId);
+        _overviewHiddenId = 0;
+    }
+}
+
+function _scheduleReload() {
+    _cancelReload();
+    // Wait for the monitor configuration to settle: several
+    // 'monitors-changed' signals usually arrive in a burst.
+    _reloadTimeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 2000, () => {
+        _reloadTimeoutId = 0;
+        if (Main.overview.visible) {
+            // Don't reload under the user's feet; wait until the overview closes.
+            _overviewHiddenId = Main.overview.connect('hidden', () => {
+                Main.overview.disconnect(_overviewHiddenId);
+                _overviewHiddenId = 0;
+                _reload();
+            });
+        } else {
+            _reload();
+        }
+        return GLib.SOURCE_REMOVE;
+    });
+}
+
+function _reload() {
+    try {
+        _disable();
+    } catch (e) {
+        logError(e, '[VERTICAL-OVERVIEW] error while disabling during reload');
+    }
+    _enable();
+    if (__DEBUG__) global.log('[VERTICAL-OVERVIEW] reloaded after monitor change');
+}
+
+function _enable() {
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] starting overrides");
     global.vertical_overview = {};
     global.vertical_overview.GSFunctions = {};
@@ -40,7 +105,7 @@ function enable() {
     if (__DEBUG__) global.log("[VERTICAL_OVERVIEW] enabled");
 }
 
-function disable() {
+function _disable() {
     if (__DEBUG__) global.log("[VERTICAL-OVERVIEW] resetting overrides");
 
     OverviewControlsOverride.reset();

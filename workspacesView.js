@@ -53,6 +53,9 @@ var WorkspacesViewOverride = {
     _getSpacing(box, fitMode, vertical) {
         const [width, height] = box.get_size();
         const [workspace] = this._workspaces;
+        if (!workspace) {
+            return 0;
+        }
         var [, workspaceHeight] = workspace.get_preferred_height(width);
         if (workspaceHeight > height) {
             workspaceHeight = height;
@@ -68,6 +71,9 @@ var WorkspacesViewOverride = {
     _getFirstFitSingleWorkspaceBox(box, spacing, vertical) {
         const [width, height] = box.get_size();
         const [workspace] = this._workspaces;
+        if (!workspace) {
+            return box.copy();
+        }
 
         const rtl = this.text_direction === Clutter.TextDirection.RTL;
         const adj = this._scrollAdjustment;
@@ -124,7 +130,12 @@ var SecondaryMonitorDisplayOverride = {
         const padding =
             Math.round((1 - SECONDARY_WORKSPACE_SCALE) * height / 2);
 
-        const scale = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+        const workArea = Main.layoutManager.getWorkAreaForMonitor(this._monitorIndex);
+        if (!workArea || !Main.layoutManager.primaryMonitor) {
+            // The monitor this display belongs to has been disconnected.
+            return;
+        }
+        const scale = workArea.width / Main.layoutManager.primaryMonitor.width;
         const leftOffset = Main.overview._overview._controls.layoutManager.leftOffset * scale;
         const rightOffset = Main.overview._overview._controls.layoutManager.rightOffset * scale;
 

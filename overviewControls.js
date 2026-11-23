@@ -79,12 +79,16 @@ function enterOverviewAnimation() {
 
     controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
         if (i != Main.layoutManager.primaryIndex) {
-            let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
-            workspace._thumbnails.translation_x = rightOffset * scale;
-            workspace._thumbnails.ease({
-                translation_x: 0,
-                duration: Overview.ANIMATION_TIME,
-            });
+            try {
+                let scale = Main.layoutManager.getWorkAreaForMonitor(workspace._monitorIndex).width / Main.layoutManager.primaryMonitor.width;
+                workspace._thumbnails.translation_x = rightOffset * scale;
+                workspace._thumbnails.ease({
+                    translation_x: 0,
+                    duration: Overview.ANIMATION_TIME,
+                });
+            } catch (e) {
+                // The monitor was disconnected and its thumbnails are gone.
+            }
         }
     });
 }
@@ -111,10 +115,14 @@ function exitOverviewAnimation() {
 
     controlsManager._workspacesDisplay._workspacesViews.forEach((workspace, i) => {
         if (i != Main.layoutManager.primaryIndex) {
-            workspace._thumbnails.ease({
-                translation_x: workspace._thumbnails.width,
-                duration: Overview.ANIMATION_TIME,
-            });
+            try {
+                workspace._thumbnails.ease({
+                    translation_x: workspace._thumbnails.width,
+                    duration: Overview.ANIMATION_TIME,
+                });
+            } catch (e) {
+                // The monitor was disconnected and its thumbnails are gone.
+            }
         }
     });
 }
